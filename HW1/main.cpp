@@ -5,9 +5,18 @@
 #endif
 #include <glm/glm.hpp>
 
+// object
 float red = 0.0f, green = 0.0f, blue = 0.0f;
-float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f; //background
 float angle = 0.0f;
+
+// background
+float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
+
+// camera
+float camera_angle = 0.0f;
+float camera_lx = 0.0f, camera_lz = -1.0f; //vector
+float camera_x = 0.0f, camera_z = 5.0f; //position of camera
+
 
 void Reshape(int w, int h) {
 
@@ -47,19 +56,42 @@ void RenderScene(void) {
     // Reset transformations
     glLoadIdentity();
     // Set the camera
-    gluLookAt(  0.0f, 0.0f, 10.0f,
-            0.0f, 0.0f,  0.0f,
+    gluLookAt(camera_x, 1.0f, camera_z,
+            camera_x + camera_lx, 1.0f,  camera_z + camera_lz,
             0.0f, 1.0f,  0.0f);
 
     glRotatef(angle, 0.0f, 1.0f, 0.0f);
     glutSolidTeapot(1.0);
-    angle+=0.5f;
+    //angle+=0.5f;
+
+
     glutSwapBuffers();
 }
 
 void ProcessNormalKeys(unsigned char key, int x, int y) {
     if (key == 27)
         exit(0);
+    float fraction = 0.1f;
+    switch (key) {
+        case 'a':
+            camera_angle -= 0.01f;
+            camera_lx = sin(camera_angle);
+            camera_lz = -cos(camera_angle);
+            break;
+        case 'd':
+            camera_angle += 0.01f;
+            camera_lx = sin(camera_angle);
+            camera_lz = -cos(camera_angle);
+            break;
+        case 'w':
+            camera_x += camera_lx * fraction;
+            camera_z += camera_lz * fraction;
+            break;
+        case 's':
+            camera_x -= camera_lx * fraction;
+            camera_z -= camera_lz * fraction;
+            break;
+    }
 }
 
 void ProcessSpecialKeys(int key, int x, int y) {
@@ -114,6 +146,9 @@ int main(int argc, char **argv) {
     // keyboard detect
     glutKeyboardFunc(ProcessNormalKeys);
     glutSpecialFunc(ProcessSpecialKeys);
+
+    // OpenGL init
+    glEnable(GL_DEPTH_TEST);
 
     // enter GLUT event processing cycle
     glutMainLoop();
