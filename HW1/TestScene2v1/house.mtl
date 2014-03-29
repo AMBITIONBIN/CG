@@ -1,0 +1,37 @@
+newmtl acmat_0
+Kd 0.3 0.22 0.04
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 128
+map_Kd door.bmp
+newmtl acmat_1
+Kd 0.54 0.46 0.31
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 128
+map_Kd window.bmp
+newmtl acmat_2
+Kd 0.23 0.04 0.0
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 128
+map_Kd stone.bmp
+newmtl acmat_3
+Kd 0.34 0.30 0.19
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 128
+map_Kd roof.bmp
+newmtl acmat_4
+Kd 0.19 0.23 0.175
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 128
+map_Kd door.bmp
+newmtl acmat_5
+Kd 0.1 0.17 0.22
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 128
+map_Kd rostschraube003_512.bmp
+
