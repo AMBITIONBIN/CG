@@ -182,7 +182,11 @@ int main(int argc, char **argv) {
 
     char file[100];
     std::cout << argv[1] << std::endl;
-    scene_obj = new scene(argv[1]);
+    if (argc != 3) {
+        std::cout << "Usage: ./main {scene dir} {main scene file}\n" << std::endl;
+        return 0;
+    }
+    scene_obj = new scene(argv[1], argv[2]);
 
     // init GLUT and create window
     glutInit(&argc, argv);

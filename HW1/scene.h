@@ -18,7 +18,7 @@ class scene {
 public:
     std::vector<model> object;
     const char* path;
-    scene(const char*);
+    scene(const char*, const char*);
     ~scene();
-    void Init();
+    void Init(const char*);
 };

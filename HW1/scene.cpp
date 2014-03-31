@@ -1,9 +1,9 @@
 #include <iostream>
 #include "scene.h"
 
-scene::scene(const char* path) {
+scene::scene(const char* path, const char* file) {
     this->path = path;
-    Init();
+    Init(file);
 }
 
 scene::~scene() {
@@ -11,10 +11,10 @@ scene::~scene() {
         (this->object)[i].~model();
 }
 
-void scene::Init() {
+void scene::Init(const char* file) {
     FILE* scene;
     std::string scene_file = this->path;
-    scene_file += "scene.scene";
+    scene_file += file;
     scene = fopen(scene_file.c_str(), "r");
 
 	if (!scene) {
