@@ -30,7 +30,7 @@ void scene::Init() {
             fscanf(scene, "%s", obj_file);
             std::string object_file = this->path;
             object_file += obj_file;
-            model* object_tmp = new model(object_file.c_str());
+            model* object_tmp = new model(this->path, object_file.c_str());
             fscanf(scene, "%f%f%f%f%f%f%f%f%f%f", &object_tmp->Sx, &object_tmp->Sy, &object_tmp->Sz, 
                     &object_tmp->Angle, &object_tmp->Rx, &object_tmp->Ry, &object_tmp->Rz, 
                     &object_tmp->Tx, &object_tmp->Ty, &object_tmp->Tz);
@@ -40,8 +40,8 @@ void scene::Init() {
     if (scene) fclose(scene);
 }
 
-model::model(const char* obj_file) {
-    this->mesh_object = new mesh(obj_file);
+model::model(const char* path, const char* obj_file) {
+    this->mesh_object = new mesh(path, obj_file);
 }
 
 model::~model() {

@@ -96,6 +96,7 @@ public:
 	// Loading Object
 	/////////////////////////////////////////////////////////////////////////////
 
+    const char*                 obj_database;
 	std::string					matFile;
 
 	size_t						mTotal;	// total material 
@@ -112,7 +113,7 @@ public:
 	void	LoadMesh(std::string scene_file);
 	
 	mesh();
-	mesh(const char* obj_file);
+	mesh(const char* obj_database, const char* obj_file);
 	virtual ~mesh();
 
 	void Init(const char* obj_file);

@@ -5,18 +5,17 @@
 #include "mesh.h"
 #include <iostream>
 
-const char* obj_database = "";	// 定義 mesh 的預設目錄
-
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-mesh::mesh(const char* obj_file)
+mesh::mesh(const char* obj_database, const char* obj_file)
 {
 	mTotal = 0;		// mList[0] reserved for default meterial
 	vTotal = tTotal = nTotal = fTotal = 0;
+    this->obj_database = obj_database;
 	
 	Init(obj_file);
 }
@@ -53,7 +52,7 @@ void mesh::LoadMesh(string obj_file)
 		
 	while(!feof(scene))
 	{
-		token[0] = NULL;
+		token[0] = '\0';
 		fscanf(scene,"%s", token);		// 讀 token
 
 		if (!strcmp(token,"g"))
@@ -66,7 +65,7 @@ void mesh::LoadMesh(string obj_file)
 			char mat_file[256];
 			matFile = mat_file;
   			fscanf(scene,"%s", mat_file);
-			LoadMtl(string(obj_database) + string(mat_file));
+			LoadMtl(string(this->obj_database) + string(mat_file));
 		}
 
 		else if (!strcmp(token,"usemtl"))
@@ -161,7 +160,7 @@ void mesh::LoadMesh(string obj_file)
 	nTotal = nList.size();
 	tTotal = tList.size();
 	fTotal = faceList.size();
-	printf("vetex: %d, normal: %d, texture: %d, triangles: %d\n",vTotal, nTotal, tTotal, fTotal);
+	printf("vetex: %ld, normal: %ld, texture: %ld, triangles: %ld\n",vTotal, nTotal, tTotal, fTotal);
 }
 
 void mesh::LoadMtl(string tex_file)
@@ -183,7 +182,7 @@ void mesh::LoadMtl(string tex_file)
 
 	while(!feof(fp_mtl))
 	{
-		token[0] = NULL;
+		token[0] = '\0';
 		fscanf(fp_mtl,"%s", token);		// 讀 token
 
 		if (!strcmp(token,"newmtl"))
@@ -264,7 +263,7 @@ void mesh::LoadMtl(string tex_file)
 //		printf("[%s]\n",token);
 	}
 
-	printf("total material:%d\n",matMap.size());
+	printf("total material:%ld\n",matMap.size());
 
 	if (fp_mtl) fclose(fp_mtl);
 }

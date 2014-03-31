@@ -10,14 +10,14 @@ public:
     char obj_file[50];
     float Sx, Sy, Sz, Angle, Rx, Ry, Rz, Tx, Ty, Tz;
     mesh* mesh_object;
-    model(const char*);
+    model(const char*, const char*);
     ~model();
 };
 
 class scene {
 public:
     std::vector<model> object;
-    std::string path;
+    const char* path;
     scene(const char*);
     ~scene();
     void Init();
