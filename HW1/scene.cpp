@@ -61,25 +61,25 @@ void scene::LoadView() {
     while (fscanf(scene, "%s", type) != EOF) {
         
         if (!strcmp(type, "eye")) {
-            fscanf(scene, "%d%d%d", &this->eye[0], &this->eye[1], &this->eye[2]);
+            fscanf(scene, "%f%f%f", &this->eye[0], &this->eye[1], &this->eye[2]);
         }
         else if (!strcmp(type, "vat")) {
-            fscanf(scene, "%d%d%d", &this->vat[0], &this->vat[1], &this->vat[2]);
+            fscanf(scene, "%f%f%f", &this->vat[0], &this->vat[1], &this->vat[2]);
         }
         else if (!strcmp(type, "vup")) {
-            fscanf(scene, "%d%d%d", &this->vup[0], &this->vup[1], &this->vup[2]);
+            fscanf(scene, "%f%f%f", &this->vup[0], &this->vup[1], &this->vup[2]);
         }
         else if (!strcmp(type, "fovy")) {
-            fscanf(scene, "%d", &this->fovy);
+            fscanf(scene, "%f", &this->fovy);
         }
         else if (!strcmp(type, "dnear")) {
-            fscanf(scene, "%d", &this->dnear);
+            fscanf(scene, "%f", &this->dnear);
         }
         else if (!strcmp(type, "dfar")) {
-            fscanf(scene, "%d", &this->dfar);
+            fscanf(scene, "%f", &this->dfar);
         }
         else if (!strcmp(type, "viewport")) {
-            fscanf(scene, "%d%d%d%d", &this->viewport[0], &this->viewport[1], 
+            fscanf(scene, "%f%f%f%f", &this->viewport[0], &this->viewport[1], 
                     &this->viewport[2], &this->viewport[3]);
         }
     }

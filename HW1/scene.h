@@ -22,7 +22,7 @@ public:
 
 class scene {
 public:
-    int eye[3], vat[3], vup[3], fovy, dnear, dfar, viewport[4];
+    float eye[3], vat[3], vup[3], fovy, dnear, dfar, viewport[4];
     std::vector<light> lights;
     float ambient[3];
     std::vector<model> object;

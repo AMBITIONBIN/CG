@@ -133,22 +133,28 @@ void ProcessNormalKeys(unsigned char key, int x, int y) {
     float fraction = 0.1f;
     switch (key) {
         case 'a':
-            camera_angle -= 0.01f;
-            camera_lx = sin(camera_angle);
-            camera_lz = -cos(camera_angle);
+            scene_obj->eye[0] -= 0.5f;
+            scene_obj->eye[2] += 0.5f;
+            scene_obj->vat[0] -= 0.5f;
+            scene_obj->vat[2] += 0.5f;
             break;
         case 'd':
-            camera_angle += 0.01f;
-            camera_lx = sin(camera_angle);
-            camera_lz = -cos(camera_angle);
+            scene_obj->eye[0] += 0.5f;
+            scene_obj->eye[2] -= 0.5f;
+            scene_obj->vat[0] += 0.5f;
+            scene_obj->vat[2] -= 0.5f;
             break;
         case 'w':
-            camera_x += camera_lx * fraction;
-            camera_z += camera_lz * fraction;
+            scene_obj->eye[0] -= 0.5f;
+            scene_obj->eye[2] -= 0.5f;
+            scene_obj->vat[0] -= 0.5f;
+            scene_obj->vat[2] -= 0.5f;
             break;
         case 's':
-            camera_x -= camera_lx * fraction;
-            camera_z -= camera_lz * fraction;
+            scene_obj->eye[0] += 0.5f;
+            scene_obj->eye[2] += 0.5f;
+            scene_obj->vat[0] += 0.5f;
+            scene_obj->vat[2] += 0.5f;
             break;
     }
 }
