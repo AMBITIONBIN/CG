@@ -130,31 +130,40 @@ void RenderScene(void) {
 void ProcessNormalKeys(unsigned char key, int x, int y) {
     if (key == 27)
         exit(0);
-    float fraction = 0.1f;
+    float fraction = 0.01f;
+    float vec_x = scene_obj->vat[0] - scene_obj->eye[0];
+    float vec_y = scene_obj->vat[1] - scene_obj->eye[1];
+    float vec_z = scene_obj->vat[2] - scene_obj->eye[2];
+    float up_vec_x = scene_obj->vup[0];
+    float up_vec_y = scene_obj->vup[1];
+    float up_vec_z = scene_obj->vup[2];
+    float cross[] = {vec_y*up_vec_z - vec_z*up_vec_y, 
+        vec_z*up_vec_x - vec_x*up_vec_z, vec_x*up_vec_y - vec_y*up_vec_x};
+
     switch (key) {
         case 'a':
-            scene_obj->eye[0] -= 0.5f;
-            scene_obj->eye[2] += 0.5f;
-            scene_obj->vat[0] -= 0.5f;
-            scene_obj->vat[2] += 0.5f;
+            scene_obj->eye[0] -= cross[0] * fraction;
+            scene_obj->eye[2] -= cross[2] * fraction;
+            scene_obj->vat[0] -= cross[0] * fraction;
+            scene_obj->vat[2] -= cross[2] * fraction;
             break;
         case 'd':
-            scene_obj->eye[0] += 0.5f;
-            scene_obj->eye[2] -= 0.5f;
-            scene_obj->vat[0] += 0.5f;
-            scene_obj->vat[2] -= 0.5f;
+            scene_obj->eye[0] += cross[0] * fraction;
+            scene_obj->eye[2] += cross[2] * fraction;
+            scene_obj->vat[0] += cross[0] * fraction;
+            scene_obj->vat[2] += cross[2] * fraction;
             break;
         case 'w':
-            scene_obj->eye[0] -= 0.5f;
-            scene_obj->eye[2] -= 0.5f;
-            scene_obj->vat[0] -= 0.5f;
-            scene_obj->vat[2] -= 0.5f;
+            scene_obj->eye[0] += vec_x * fraction;
+            scene_obj->eye[2] += vec_z * fraction;
+            scene_obj->vat[0] += vec_x * fraction;
+            scene_obj->vat[2] += vec_z * fraction;
             break;
         case 's':
-            scene_obj->eye[0] += 0.5f;
-            scene_obj->eye[2] += 0.5f;
-            scene_obj->vat[0] += 0.5f;
-            scene_obj->vat[2] += 0.5f;
+            scene_obj->eye[0] -= vec_x * fraction;
+            scene_obj->eye[2] -= vec_z * fraction;
+            scene_obj->vat[0] -= vec_x * fraction;
+            scene_obj->vat[2] -= vec_z * fraction;
             break;
     }
 }
