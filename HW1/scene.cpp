@@ -12,10 +12,9 @@ scene::~scene() {
         (this->object)[i].~model();
 }
 
-void scene::Init() {
-    FILE* scene;
-
+void scene::LoadModel() {
     // Load models
+    FILE* scene;
     std::string scene_file = this->path;
     scene_file += this->file_name;
     scene_file += ".scene";
@@ -41,9 +40,12 @@ void scene::Init() {
         }
     }
     if (scene) fclose(scene);
+}
 
+void scene::LoadView() {
     // Load view
-    scene_file = this->path;
+    FILE* scene;
+    std::string scene_file = this->path;
     scene_file += this->file_name;
     scene_file += ".view";
     scene = fopen(scene_file.c_str(), "r");
@@ -55,9 +57,9 @@ void scene::Init() {
     
     std::cout << "Load view file:\"" << scene_file << "\"" << std::endl;
 
+    char type[20];
     while (fscanf(scene, "%s", type) != EOF) {
         
-        int eye[3], vat[3], vup[3], fovy, dfar, viewport[4];
         if (!strcmp(type, "eye")) {
             fscanf(scene, "%d%d%d", &this->eye[0], &this->eye[1], &this->eye[2]);
         }
@@ -82,6 +84,44 @@ void scene::Init() {
         }
     }
     if (scene) fclose(scene);
+}
+
+void scene::LoadLight() {
+    FILE* scene;
+    std::string scene_file = this->path;
+    scene_file += this->file_name;
+    scene_file += ".light";
+    scene = fopen(scene_file.c_str(), "r");
+	if (!scene) {
+        std::cout<< "Can not open scene view File \"" << scene_file << "\" !" << std::endl;
+		return;
+	}
+    
+    std::cout << "Load light file:\"" << scene_file << "\"" << std::endl;
+
+    char type[20];
+    while (fscanf(scene, "%s", type) != EOF) {
+        
+        if (!strcmp(type, "light")) {
+            light* light_tmp = new light();
+            fscanf(scene, "%d%d%d%f%f%f%f%f%f%f%f%f", 
+                    &(light_tmp->x), &(light_tmp->y), &(light_tmp->z), 
+                    &(light_tmp->ar), &(light_tmp->ag), &(light_tmp->ab), 
+                    &(light_tmp->dr), &(light_tmp->dg), &(light_tmp->db), 
+                    &(light_tmp->sr), &(light_tmp->dg), &(light_tmp->sb));
+            (this->lights).push_back(*light_tmp);
+        }
+        else if (!strcmp(type, "ambient")) {
+            fscanf(scene, "%f%f%f", &this->ambient[0], &this->ambient[1], &this->ambient[2]);
+        }
+    }
+    if (scene) fclose(scene);
+}
+
+void scene::Init() {
+    LoadModel();
+    LoadView();
+    LoadLight();
 }
 
 model::model(const char* path, const char* obj_file) {

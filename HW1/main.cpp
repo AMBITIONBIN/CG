@@ -29,12 +29,7 @@ void Reshape(GLsizei w, GLsizei h) {
 	WindowSize[1] = h;
 }
 
-void light() {
-	GLfloat light_specular[] = {1.0, 1.0, 1.0, 1.0};
-	GLfloat light_diffuse[] = {1.0, 1.0, 1.0, 1.0};
-	GLfloat light_ambient[] = {0.0, 0.0, 0.0, 1.0};
-	GLfloat light_position[] = {150.0, 150.0, 150.0, 1.0};
-
+void Light() {
 	glShadeModel(GL_SMOOTH);
 
 	// z buffer enable
@@ -44,10 +39,25 @@ void light() {
 	glEnable(GL_LIGHTING);
 	// set light property
 	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+
+    for (int i = 0, j = scene_obj->lights.size(); i < j; ++i) {
+        light light_tmp = scene_obj->lights[0];
+        
+	    GLfloat light_position[] = {light_tmp.x, light_tmp.y, light_tmp.z, 1.0f};
+	    GLfloat light_specular[] = {light_tmp.sr, light_tmp.sg, light_tmp.sb, 1.0f};
+	    GLfloat light_diffuse[] = {light_tmp.dr, light_tmp.dg, light_tmp.db, 1.0f};
+	    GLfloat light_ambient[] = {light_tmp.ar, light_tmp.ag, light_tmp.sb, 1.0f};
+
+        glPushMatrix();
+	    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+        glPopMatrix();
+    }
+
+    GLfloat l_ambient[] = {scene_obj->ambient[0], scene_obj->ambient[1], scene_obj->ambient[2], 1.0f};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, l_ambient);
 }
 
 void RenderScene(void) {
@@ -78,7 +88,7 @@ void RenderScene(void) {
             scene_obj->vat[0], scene_obj->vat[1], scene_obj->vat[2],
             scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
     
-	light();
+	Light();
 
 	int lastMaterial = -1;
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
