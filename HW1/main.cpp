@@ -77,15 +77,17 @@ void RenderScene(void) {
     gluLookAt(scene_obj->eye[0], scene_obj->eye[1], scene_obj->eye[2],
             scene_obj->vat[0], scene_obj->vat[1], scene_obj->vat[2],
             scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
-
-    //glutSolidTeapot(1.0);
-    //angle+=0.5f;
     
 	light();
 
 	int lastMaterial = -1;
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
         mesh* object = scene_obj->object[k].mesh_object;
+        model model_tmp = scene_obj->object[k];
+        glPushMatrix();
+        glTranslatef(model_tmp.Tx, model_tmp.Ty, model_tmp.Tz);
+        glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
+        glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
 
         for(size_t i=0;i < object->fTotal;++i) {
             // set material property if this face used different material
@@ -109,12 +111,7 @@ void RenderScene(void) {
             }
             glEnd();
         }
-
-        model model_tmp = scene_obj->object[k];
-        glTranslatef(model_tmp.Tx, model_tmp.Ty, model_tmp.Tz);
-        glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
-        glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
-
+        glPopMatrix();
     }
 
     glutSwapBuffers();
@@ -195,7 +192,7 @@ int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(0,0);
-    glutInitWindowSize(700,700);
+    glutInitWindowSize(800,800);
     glutCreateWindow("Test");
 
     // register callbacks
