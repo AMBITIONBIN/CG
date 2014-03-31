@@ -12,6 +12,34 @@ scene::~scene() {
         (this->object)[i].~model();
 }
 
+void scene::Forward(float x, float z) {
+    this->eye[0] += x;
+    this->eye[2] += z;
+    this->vat[0] += x;
+    this->vat[2] += z;
+}
+
+void scene::Backward(float x, float z) {
+    this->eye[0] -= x;
+    this->eye[2] -= z;
+    this->vat[0] -= x;
+    this->vat[2] -= z;
+}
+
+void scene::Left(float x, float z) {
+    this->eye[0] -= x;
+    this->eye[2] -= z;
+    this->vat[0] -= x;
+    this->vat[2] -= z;
+}
+
+void scene::Right(float x, float z) {
+    this->eye[0] += x;
+    this->eye[2] += z;
+    this->vat[0] += x;
+    this->vat[2] += z;
+}
+
 void scene::LoadModel() {
     // Load models
     FILE* scene;

@@ -142,28 +142,16 @@ void ProcessNormalKeys(unsigned char key, int x, int y) {
 
     switch (key) {
         case 'a':
-            scene_obj->eye[0] -= cross[0] * fraction;
-            scene_obj->eye[2] -= cross[2] * fraction;
-            scene_obj->vat[0] -= cross[0] * fraction;
-            scene_obj->vat[2] -= cross[2] * fraction;
+            (*scene_obj).Left(cross[0]*fraction, cross[2]*fraction);
             break;
         case 'd':
-            scene_obj->eye[0] += cross[0] * fraction;
-            scene_obj->eye[2] += cross[2] * fraction;
-            scene_obj->vat[0] += cross[0] * fraction;
-            scene_obj->vat[2] += cross[2] * fraction;
+            (*scene_obj).Right(cross[0]*fraction, cross[2]*fraction);
             break;
         case 'w':
-            scene_obj->eye[0] += vec_x * fraction;
-            scene_obj->eye[2] += vec_z * fraction;
-            scene_obj->vat[0] += vec_x * fraction;
-            scene_obj->vat[2] += vec_z * fraction;
+            (*scene_obj).Forward(vec_x*fraction, vec_z*fraction);
             break;
         case 's':
-            scene_obj->eye[0] -= vec_x * fraction;
-            scene_obj->eye[2] -= vec_z * fraction;
-            scene_obj->vat[0] -= vec_x * fraction;
-            scene_obj->vat[2] -= vec_z * fraction;
+            (*scene_obj).Backward(vec_x*fraction, vec_z*fraction);
             break;
     }
 }
@@ -228,6 +216,9 @@ int main(int argc, char **argv) {
     // keyboard detect
     glutKeyboardFunc(ProcessNormalKeys);
     glutSpecialFunc(ProcessSpecialKeys);
+
+    // mouse detect
+    //glutMouseFunc(ProcessMouse);
 
     // enter GLUT event processing cycle
     glutMainLoop();

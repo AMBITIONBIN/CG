@@ -31,6 +31,14 @@ public:
     scene(const char*, const char*);
     ~scene();
     void Init();
+    void Forward(float, float);
+    void Left(float, float);
+    void Right(float, float);
+    void Backward(float, float);
+    //void TurnRight();
+    //void TurnLeft();
+    //void TurnUp();
+    //void TurnDown();
 private:
     void LoadView();
     void LoadModel();
