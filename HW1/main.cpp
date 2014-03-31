@@ -191,6 +191,48 @@ void ProcessSpecialKeys(int key, int x, int y) {
     }
 }
 
+int old_x = 0, old_y = 0;
+bool first = true;
+void ProcessMouseActiveMotion(int x, int y) {
+
+    float fraction = 0.1f;
+    float vec_x = scene_obj->vat[0] - scene_obj->eye[0];
+    float vec_y = scene_obj->vat[1] - scene_obj->eye[1];
+    float vec_z = scene_obj->vat[2] - scene_obj->eye[2];
+    float up_vec_x = scene_obj->vup[0];
+    float up_vec_y = scene_obj->vup[1];
+    float up_vec_z = scene_obj->vup[2];
+    float cross[] = {vec_y*up_vec_z - vec_z*up_vec_y, 
+        vec_z*up_vec_x - vec_x*up_vec_z, vec_x*up_vec_y - vec_y*up_vec_x};
+
+    // setting red to be relative to the mouse 
+    // position inside the window
+    if (x < 0 || x > WindowSize[0]) {
+    }
+    else {
+        if (old_x > x)
+            if (first) first = false;
+            else (*scene_obj).TurnLeft(fraction, cross[0], cross[2]);
+        else if (old_x < x){
+            if (first) first = false;
+            else (*scene_obj).TurnRight(fraction, cross[0], cross[2]);
+        }
+    }
+
+    // setting green to be relative to the mouse 
+    // position inside the window
+//    if (y < 0)
+//        b_green = 0.0;
+//    else if (y > WindowSize[0])
+//        b_green = 1.0;
+//    else
+//        b_green = ((float) y)/WindowSize[1];
+//    // removing the blue component.
+    b_blue = 0.0;
+    old_x = x;
+    old_y = y;
+}
+
 int main(int argc, char **argv) {
 
     char file[100];
@@ -219,6 +261,7 @@ int main(int argc, char **argv) {
 
     // mouse detect
     //glutMouseFunc(ProcessMouse);
+    glutMotionFunc(ProcessMouseActiveMotion);
 
     // enter GLUT event processing cycle
     glutMainLoop();

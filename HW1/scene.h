@@ -35,8 +35,8 @@ public:
     void Left(float, float);
     void Right(float, float);
     void Backward(float, float);
-    //void TurnRight();
-    //void TurnLeft();
+    void TurnLeft(float, float, float);
+    void TurnRight(float, float, float);
     //void TurnUp();
     //void TurnDown();
 private:

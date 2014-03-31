@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "scene.h"
 
 scene::scene(const char* path, const char* file) {
@@ -38,6 +39,28 @@ void scene::Right(float x, float z) {
     this->eye[2] += z;
     this->vat[0] += x;
     this->vat[2] += z;
+}
+
+void scene::TurnLeft(float  fraction, float x, float z) {
+    float dis[] = {this->eye[0] - this->vat[0], this->eye[2] - this->vat[2]};
+    float r = sqrt(dis[0]*dis[0] + dis[1]*dis[1]);
+    this->eye[0] += fraction * x;
+    this->eye[2] += fraction * z;
+    float new_dis[] = {this->eye[0] - this->vat[0], this->eye[2] - this->vat[2]};
+    float new_r = sqrt(new_dis[0]*new_dis[0] + new_dis[1]*new_dis[1]);
+    this->eye[0] = new_dis[0]*r/new_r + this->vat[0];
+    this->eye[2] = new_dis[1]*r/new_r + this->vat[2];
+}
+
+void scene::TurnRight(float  fraction, float x, float z) {
+    float dis[] = {this->eye[0] - this->vat[0], this->eye[2] - this->vat[2]};
+    float r = sqrt(dis[0]*dis[0] + dis[1]*dis[1]);
+    this->eye[0] -= fraction * x;
+    this->eye[2] -= fraction * z;
+    float new_dis[] = {this->eye[0] - this->vat[0], this->eye[2] - this->vat[2]};
+    float new_r = sqrt(new_dis[0]*new_dis[0] + new_dis[1]*new_dis[1]);
+    this->eye[0] = new_dis[0]*r/new_r + this->vat[0];
+    this->eye[2] = new_dis[1]*r/new_r + this->vat[2];
 }
 
 void scene::LoadModel() {
