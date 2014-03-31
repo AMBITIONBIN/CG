@@ -3,11 +3,13 @@
 #else
 #include <GL/glut.h>
 #endif
+#include <iostream>
+#include <vector>
 #include <glm/glm.hpp>
-#include "mesh.h"
+#include "scene.h"
 
 // load object
-mesh* object;
+scene* scene_obj;
 int WindowSize[2]; // = w & h
 
 // object
@@ -85,28 +87,32 @@ void RenderScene(void) {
 	light();
 
 	int lastMaterial = -1;
-	for(size_t i=0;i < object->fTotal;++i) {
-		// set material property if this face used different material
-		if(lastMaterial != object->faceList[i].m) {
-			lastMaterial = (int)object->faceList[i].m;
-			glMaterialfv(GL_FRONT, GL_AMBIENT  , object->mList[lastMaterial].Ka);
-			glMaterialfv(GL_FRONT, GL_DIFFUSE  , object->mList[lastMaterial].Kd);
-			glMaterialfv(GL_FRONT, GL_SPECULAR , object->mList[lastMaterial].Ks);
-			glMaterialfv(GL_FRONT, GL_SHININESS, &object->mList[lastMaterial].Ns);
+    for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
+        mesh* object = scene_obj->object[k].mesh_object;
 
-			//you can obtain the texture name by object->mList[lastMaterial].map_Kd
-			//load them once in the main function before mainloop
-			//bind them in display function here
-		}
+        for(size_t i=0;i < object->fTotal;++i) {
+            // set material property if this face used different material
+            if(lastMaterial != object->faceList[i].m) {
+                lastMaterial = (int)object->faceList[i].m;
+                glMaterialfv(GL_FRONT, GL_AMBIENT  , object->mList[lastMaterial].Ka);
+                glMaterialfv(GL_FRONT, GL_DIFFUSE  , object->mList[lastMaterial].Kd);
+                glMaterialfv(GL_FRONT, GL_SPECULAR , object->mList[lastMaterial].Ks);
+                glMaterialfv(GL_FRONT, GL_SHININESS, &object->mList[lastMaterial].Ns);
 
-		glBegin(GL_TRIANGLES);
-		for (size_t j=0;j<3;++j) {
-			//textex corrd. object->tList[object->faceList[i][j].t].ptr
-			glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
-			glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
-		}
-		glEnd();
-	}
+                //you can obtain the texture name by object->mList[lastMaterial].map_Kd
+                //load them once in the main function before mainloop
+                //bind them in display function here
+            }
+
+            glBegin(GL_TRIANGLES);
+            for (size_t j=0;j<3;++j) {
+                //textex corrd. object->tList[object->faceList[i][j].t].ptr
+                glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
+                glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
+            }
+            glEnd();
+        }
+    }
 
     glutSwapBuffers();
 }
@@ -174,7 +180,9 @@ void ProcessSpecialKeys(int key, int x, int y) {
 
 int main(int argc, char **argv) {
 
-    object = new mesh("box.obj");
+    char file[100];
+    std::cout << argv[1] << std::endl;
+    scene_obj = new scene(argv[1]);
 
     // init GLUT and create window
     glutInit(&argc, argv);
