@@ -60,27 +60,24 @@ void RenderScene(void) {
     // Clear Color and Depth Buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //glColor3f(red, green, blue);
-    glViewport(0, 0, WindowSize[0], WindowSize[1]);
+    glViewport(scene_obj->viewport[0], scene_obj->viewport[1], scene_obj->viewport[2], scene_obj->viewport[3]);
 
     // Reset transformations
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    //float ratio =  WindowSize[0] * 1.0 / WindowSize[1];
-    //gluPerspective(45.0f, ratio, 0.1f, 100.0f);
-	gluPerspective(60.0, (GLfloat)WindowSize[0]/(GLfloat)WindowSize[1], 1.0, 1000.0);
+	gluPerspective(scene_obj->fovy, (GLfloat)WindowSize[0]/(GLfloat)WindowSize[1], 
+            scene_obj->dnear, scene_obj->dfar);
 
 	// viewing and modeling transformation
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
     // Set the camera
-    gluLookAt(camera_x, 300.0f, camera_z,
-            camera_x + camera_lx, 1.0f, camera_z + camera_lz,
-            0.0f, 1.0f,  0.0f);
+    gluLookAt(scene_obj->eye[0], scene_obj->eye[1], scene_obj->eye[2],
+            scene_obj->vat[0], scene_obj->vat[1], scene_obj->vat[2],
+            scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
 
-    //glRotatef(angle, 0.0f, 1.0f, 0.0f);
     //glutSolidTeapot(1.0);
     //angle+=0.5f;
     
@@ -112,6 +109,12 @@ void RenderScene(void) {
             }
             glEnd();
         }
+
+        model model_tmp = scene_obj->object[k];
+        glTranslatef(model_tmp.Tx, model_tmp.Ty, model_tmp.Tz);
+        glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
+        glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
+
     }
 
     glutSwapBuffers();

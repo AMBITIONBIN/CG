@@ -16,9 +16,11 @@ public:
 
 class scene {
 public:
+    int eye[3], vat[3], vup[3], fovy, dnear, dfar, viewport[4];
     std::vector<model> object;
     const char* path;
+    const char* file_name;
     scene(const char*, const char*);
     ~scene();
-    void Init(const char*);
+    void Init();
 };
