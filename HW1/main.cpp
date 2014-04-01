@@ -1,11 +1,6 @@
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 #include <iostream>
 #include <vector>
-#include <glm/glm.hpp>
+#include "GL/glut.h"
 #include "scene.h"
 
 // load object
@@ -18,11 +13,6 @@ float angle = 0.0f;
 
 // background
 float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
-
-// camera
-float camera_angle = 0.0f;
-float camera_lx = -200.0f, camera_lz = -150.0f; //vector
-float camera_x = 200.0f, camera_z = 150.0f; //position of camera
 
 void Reshape(GLsizei w, GLsizei h) {
     WindowSize[0] = w;
