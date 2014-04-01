@@ -194,7 +194,7 @@ void ProcessSpecialKeys(int key, int x, int y) {
 int old_x = 0, old_y = 0;
 void ProcessMouseActiveMotion(int x, int y) {
 
-    float fraction = 0.01f;
+    float fraction = (scene_obj->GetFraction())/100;
     float vec_x = scene_obj->vat[0] - scene_obj->eye[0];
     float vec_y = scene_obj->vat[1] - scene_obj->eye[1];
     float vec_z = scene_obj->vat[2] - scene_obj->eye[2];
@@ -227,7 +227,7 @@ void ProcessMouseActiveMotion(int x, int y) {
         // position inside the window
         if (y < 0 || y > WindowSize[1]) {}
         else {
-            fraction = 1.0f;
+            fraction = (scene_obj->GetFraction());
             if (old_y > y) {
                 fraction *= (old_y - y);
                 (*scene_obj).TurnUp(fraction, cross[0], cross[1], cross[2]);

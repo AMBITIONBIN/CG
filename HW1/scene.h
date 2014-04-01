@@ -39,6 +39,7 @@ public:
     void TurnRight(float, float, float);
     void TurnUp(float, float, float, float);
     void TurnDown(float, float, float, float);
+    float GetFraction();
 private:
     void LoadView();
     void LoadModel();

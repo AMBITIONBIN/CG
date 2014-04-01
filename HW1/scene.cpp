@@ -13,6 +13,13 @@ scene::~scene() {
         (this->object)[i].~model();
 }
 
+float scene::GetFraction() {
+    float dis[] = {this->eye[0] - this->vat[0], this->eye[2] - this->vat[2]};
+    float r = sqrt(dis[0]*dis[0] + dis[1]*dis[1]);
+    if (r < 0.1f) return r/70;
+    return r/700;
+}
+
 void scene::Forward(float x, float z) {
     this->eye[0] += x;
     this->eye[2] += z;
