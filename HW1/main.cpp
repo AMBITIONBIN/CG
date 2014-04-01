@@ -25,34 +25,34 @@ float camera_lx = -200.0f, camera_lz = -150.0f; //vector
 float camera_x = 200.0f, camera_z = 150.0f; //position of camera
 
 void Reshape(GLsizei w, GLsizei h) {
-	WindowSize[0] = w;
-	WindowSize[1] = h;
+    WindowSize[0] = w;
+    WindowSize[1] = h;
 }
 
 void Light() {
-	glShadeModel(GL_SMOOTH);
+    glShadeModel(GL_SMOOTH);
 
-	// z buffer enable
-	glEnable(GL_DEPTH_TEST);
+    // z buffer enable
+    glEnable(GL_DEPTH_TEST);
 
-	// enable lighting
-	glEnable(GL_LIGHTING);
-	// set light property
-	glEnable(GL_LIGHT0);
+    // enable lighting
+    glEnable(GL_LIGHTING);
+    // set light property
+    glEnable(GL_LIGHT0);
 
     for (int i = 0, j = scene_obj->lights.size(); i < j; ++i) {
         light light_tmp = scene_obj->lights[0];
-        
-	    GLfloat light_position[] = {light_tmp.x, light_tmp.y, light_tmp.z, 1.0f};
-	    GLfloat light_specular[] = {light_tmp.sr, light_tmp.sg, light_tmp.sb, 1.0f};
-	    GLfloat light_diffuse[] = {light_tmp.dr, light_tmp.dg, light_tmp.db, 1.0f};
-	    GLfloat light_ambient[] = {light_tmp.ar, light_tmp.ag, light_tmp.sb, 1.0f};
+
+        GLfloat light_position[] = {light_tmp.x, light_tmp.y, light_tmp.z, 1.0f};
+        GLfloat light_specular[] = {light_tmp.sr, light_tmp.sg, light_tmp.sb, 1.0f};
+        GLfloat light_diffuse[] = {light_tmp.dr, light_tmp.dg, light_tmp.db, 1.0f};
+        GLfloat light_ambient[] = {light_tmp.ar, light_tmp.ag, light_tmp.sb, 1.0f};
 
         glPushMatrix();
-	    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
         glPopMatrix();
     }
 
@@ -65,7 +65,7 @@ void RenderScene(void) {
     glClearColor(b_red, b_green, b_blue, 0.0f);
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LEQUAL);
 
     // Clear Color and Depth Buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -76,21 +76,21 @@ void RenderScene(void) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-	gluPerspective(scene_obj->fovy, (GLfloat)WindowSize[0]/(GLfloat)WindowSize[1], 
+    gluPerspective(scene_obj->fovy, (GLfloat)WindowSize[0]/(GLfloat)WindowSize[1], 
             scene_obj->dnear, scene_obj->dfar);
 
-	// viewing and modeling transformation
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+    // viewing and modeling transformation
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     // Set the camera
     gluLookAt(scene_obj->eye[0], scene_obj->eye[1], scene_obj->eye[2],
             scene_obj->vat[0], scene_obj->vat[1], scene_obj->vat[2],
             scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
-    
-	Light();
 
-	int lastMaterial = -1;
+    Light();
+
+    int lastMaterial = -1;
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
         mesh* object = scene_obj->object[k].mesh_object;
         model model_tmp = scene_obj->object[k];
@@ -192,10 +192,9 @@ void ProcessSpecialKeys(int key, int x, int y) {
 }
 
 int old_x = 0, old_y = 0;
-bool first = true;
 void ProcessMouseActiveMotion(int x, int y) {
 
-    float fraction = 0.1f;
+    float fraction = 0.01f;
     float vec_x = scene_obj->vat[0] - scene_obj->eye[0];
     float vec_y = scene_obj->vat[1] - scene_obj->eye[1];
     float vec_z = scene_obj->vat[2] - scene_obj->eye[2];
@@ -207,28 +206,39 @@ void ProcessMouseActiveMotion(int x, int y) {
 
     // setting red to be relative to the mouse 
     // position inside the window
-    if (x < 0 || x > WindowSize[0]) {
+    int dis_x = x > old_x? x - old_x: old_x - x;
+    int dis_y = y > old_y? y - old_y: old_y - y;
+    int max_dis = 50;
+    if (dis_x > dis_y && dis_x < max_dis) {
+        if (x < 0 || x > WindowSize[0]) {}
+        else {
+            if (old_x > x) {
+                fraction *= (old_x - x);
+                (*scene_obj).TurnLeft(fraction, cross[0], cross[2]);
+            }
+            else if (old_x < x){
+                fraction *= (x - old_x);
+                (*scene_obj).TurnRight(fraction, cross[0], cross[2]);
+            }
+        }
     }
-    else {
-        if (old_x > x)
-            if (first) first = false;
-            else (*scene_obj).TurnLeft(fraction, cross[0], cross[2]);
-        else if (old_x < x){
-            if (first) first = false;
-            else (*scene_obj).TurnRight(fraction, cross[0], cross[2]);
+    else if (dis_y > dis_x && dis_y < max_dis) {
+        // setting green to be relative to the mouse 
+        // position inside the window
+        if (y < 0 || y > WindowSize[1]) {}
+        else {
+            fraction = 1.0f;
+            if (old_y > y) {
+                fraction *= (old_y - y);
+                (*scene_obj).TurnUp(fraction, cross[0], cross[1], cross[2]);
+            }
+            else if (old_y < y){
+                fraction *= (y - old_y);
+                (*scene_obj).TurnDown(fraction, cross[0], cross[1], cross[2]);
+            }
         }
     }
 
-    // setting green to be relative to the mouse 
-    // position inside the window
-//    if (y < 0)
-//        b_green = 0.0;
-//    else if (y > WindowSize[0])
-//        b_green = 1.0;
-//    else
-//        b_green = ((float) y)/WindowSize[1];
-//    // removing the blue component.
-    b_blue = 0.0;
     old_x = x;
     old_y = y;
 }

@@ -37,8 +37,8 @@ public:
     void Backward(float, float);
     void TurnLeft(float, float, float);
     void TurnRight(float, float, float);
-    //void TurnUp();
-    //void TurnDown();
+    void TurnUp(float, float, float, float);
+    void TurnDown(float, float, float, float);
 private:
     void LoadView();
     void LoadModel();

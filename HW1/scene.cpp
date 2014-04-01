@@ -63,6 +63,62 @@ void scene::TurnRight(float  fraction, float x, float z) {
     this->eye[2] = new_dis[1]*r/new_r + this->vat[2];
 }
 
+void scene::TurnUp(float fraction, float cross_x, float cross_y, float cross_z) {
+    float dis[] = {this->eye[0] - this->vat[0], this->eye[1] - this->vat[1], this->eye[2] - this->vat[2]};
+    float r = sqrt(dis[0]*dis[0] + dis[1]*dis[1] + dis[2]*dis[2]);
+    this->eye[0] += fraction * vup[0];
+    this->eye[1] += fraction * vup[1];
+    this->eye[2] += fraction * vup[2];
+    float new_dis[] = {this->eye[0] - this->vat[0], this->eye[1] - this->vat[1], this->eye[2] - this->vat[2]};
+    float new_r = sqrt(new_dis[0]*new_dis[0] + new_dis[1]*new_dis[1] + new_dis[2]*new_dis[2]);
+    float ratio = r/new_r;
+    
+    this->eye[0] *= ratio;
+    this->eye[1] *= ratio;
+    this->eye[2] *= ratio;
+    
+    // Fixed vup
+    dis[0] = this->eye[0] - this->vat[0];
+    dis[1] = this->eye[1] - this->vat[1]; 
+    dis[2] = this->eye[2] - this->vat[2];
+
+    float new_vup_x = dis[1]*cross_z - dis[2]*cross_y;
+    float new_vup_y = dis[2]*cross_x - dis[0]*cross_z;
+    float new_vup_z = dis[0]*cross_y - dis[1]*cross_x;
+    float new_vup_dis = sqrt(new_vup_x*new_vup_x + new_vup_y*new_vup_y + new_vup_z*new_vup_z);
+    this->vup[0] = new_vup_x/new_vup_dis; 
+    this->vup[1] = new_vup_y/new_vup_dis; 
+    this->vup[2] = new_vup_z/new_vup_dis; 
+}
+
+void scene::TurnDown(float fraction, float cross_x, float cross_y, float cross_z) {
+    float dis[] = {this->eye[0] - this->vat[0], this->eye[1] - this->vat[1], this->eye[2] - this->vat[2]};
+    float r = sqrt(dis[0]*dis[0] + dis[1]*dis[1] + dis[2]*dis[2]);
+    this->eye[0] -= fraction * vup[0];
+    this->eye[1] -= fraction * vup[1];
+    this->eye[2] -= fraction * vup[2];
+    float new_dis[] = {this->eye[0] - this->vat[0], this->eye[1] - this->vat[1], this->eye[2] - this->vat[2]};
+    float new_r = sqrt(new_dis[0]*new_dis[0] + new_dis[1]*new_dis[1] + new_dis[2]*new_dis[2]);
+    float ratio = r/new_r;
+    
+    this->eye[0] *= ratio;
+    this->eye[1] *= ratio;
+    this->eye[2] *= ratio;
+    
+    // Fixed vup
+    dis[0] = this->eye[0] - this->vat[0];
+    dis[1] = this->eye[1] - this->vat[1]; 
+    dis[2] = this->eye[2] - this->vat[2];
+
+    float new_vup_x = dis[1]*cross_z - dis[2]*cross_y;
+    float new_vup_y = dis[2]*cross_x - dis[0]*cross_z;
+    float new_vup_z = dis[0]*cross_y - dis[1]*cross_x;
+    float new_vup_dis = sqrt(new_vup_x*new_vup_x + new_vup_y*new_vup_y + new_vup_z*new_vup_z);
+    this->vup[0] = new_vup_x/new_vup_dis; 
+    this->vup[1] = new_vup_y/new_vup_dis; 
+    this->vup[2] = new_vup_z/new_vup_dis; 
+}
+
 void scene::LoadModel() {
     // Load models
     FILE* scene;
