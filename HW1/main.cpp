@@ -37,23 +37,76 @@ void Light() {
 
     // enable lighting
     glEnable(GL_LIGHTING);
-    // set light property
-    glEnable(GL_LIGHT0);
+
 
     for (int i = 0, j = scene_obj->lights.size(); i < j; ++i) {
+
         light light_tmp = scene_obj->lights[0];
 
         GLfloat light_position[] = {light_tmp.x, light_tmp.y, light_tmp.z, 1.0f};
         GLfloat light_specular[] = {light_tmp.sr, light_tmp.sg, light_tmp.sb, 1.0f};
         GLfloat light_diffuse[] = {light_tmp.dr, light_tmp.dg, light_tmp.db, 1.0f};
         GLfloat light_ambient[] = {light_tmp.ar, light_tmp.ag, light_tmp.sb, 1.0f};
-
-        glPushMatrix();
-        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-        glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-        glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-        glPopMatrix();
+        
+        switch (i) {
+            case 0:
+                glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+                break;
+            case 1:
+                glLightfv(GL_LIGHT1, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+                glEnable(GL_LIGHT1);
+                break;
+            case 2:
+                glLightfv(GL_LIGHT2, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT2, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT2, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT2, GL_AMBIENT, light_ambient);
+                break;
+            case 3:
+                glLightfv(GL_LIGHT3, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT3, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT3, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT3, GL_AMBIENT, light_ambient);
+                break;
+            case 4:
+                glLightfv(GL_LIGHT4, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT4, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT4, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT4, GL_AMBIENT, light_ambient);
+                break;
+            case 5:
+                glLightfv(GL_LIGHT5, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT5, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT5, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT5, GL_AMBIENT, light_ambient);
+                break;
+            case 6:
+                glLightfv(GL_LIGHT6, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT6, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT6, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT6, GL_AMBIENT, light_ambient);
+                break;
+            case 7:
+                glLightfv(GL_LIGHT7, GL_POSITION, light_position);
+                glLightfv(GL_LIGHT7, GL_DIFFUSE, light_diffuse);
+                glLightfv(GL_LIGHT7, GL_SPECULAR, light_specular);
+                glLightfv(GL_LIGHT7, GL_AMBIENT, light_ambient);
+                break;
+        }
+        glEnable(GL_LIGHT0);
+        glEnable(GL_LIGHT1);
+        glEnable(GL_LIGHT2);
+        glEnable(GL_LIGHT3);
+        glEnable(GL_LIGHT4);
+        glEnable(GL_LIGHT5);
+        glEnable(GL_LIGHT6);
+        glEnable(GL_LIGHT7);
     }
 
     GLfloat l_ambient[] = {scene_obj->ambient[0], scene_obj->ambient[1], scene_obj->ambient[2], 1.0f};

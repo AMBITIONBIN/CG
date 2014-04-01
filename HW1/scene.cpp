@@ -222,7 +222,7 @@ void scene::LoadLight() {
                     &(light_tmp->x), &(light_tmp->y), &(light_tmp->z), 
                     &(light_tmp->ar), &(light_tmp->ag), &(light_tmp->ab), 
                     &(light_tmp->dr), &(light_tmp->dg), &(light_tmp->db), 
-                    &(light_tmp->sr), &(light_tmp->dg), &(light_tmp->sb));
+                    &(light_tmp->sr), &(light_tmp->sg), &(light_tmp->sb));
             (this->lights).push_back(*light_tmp);
         }
         else if (!strcmp(type, "ambient")) {
