@@ -3,10 +3,12 @@
 #include "GL/glut.h"
 #include "SOIL/SOIL.h"
 #include "scene.h"
+#define TEX_NUM 1
 
 // load object
 scene* scene_obj;
 int WindowSize[2]; // = w & h
+GLuint texObject[TEX_NUM];
 
 // object
 float red = 0.0f, green = 0.0f, blue = 0.0f;
@@ -15,10 +17,17 @@ float angle = 0.0f;
 // background
 float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
 
-void LoadTexture(char* filename) {
+void LoadTexture() {
+    // Room
     int width, height;
-    unsigned char* image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    unsigned char* image = SOIL_load_image("ChessScene/Room.bmp", &width, &height, 0, SOIL_LOAD_RGB);
+    glGenTextures(TEX_NUM, texObject);
+    glBindTexture(GL_TEXTURE_2D, texObject[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 void Reshape(GLsizei w, GLsizei h) {
@@ -62,6 +71,24 @@ void RenderScene(void) {
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+
+    // texture test
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0, 1.0, 1.0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texObject[0]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(-50.0, 0.0, 0.0);
+    glTexCoord2f(0.0, 100.0);
+    glVertex3f(-50.0, 0.0, 100.0);
+    glTexCoord2f(100.0, 100.0);
+    glVertex3f(50.0, 0.0, 100.0);
+    glTexCoord2f(100.0, 0.0);
+    glVertex3f(50.0, 0.0, 0.0);
+    glEnd();
+    glFlush();
+    // end
 
     // Clear Color and Depth Buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -249,7 +276,7 @@ int main(int argc, char **argv) {
     glutInitWindowPosition(0,0);
     glutInitWindowSize(800,600);
     glutCreateWindow("Chess");
-    LoadTexture("ChessScene/Grid.bmp");
+    LoadTexture();
 
     // register callbacks
     glutDisplayFunc(RenderScene);
