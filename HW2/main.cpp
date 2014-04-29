@@ -6,6 +6,7 @@
 #include "SOIL/SOIL.h"
 #include "scene.h"
 #define TEX_NUM 4
+#define MIPMAP
 
 // load object
 scene* scene_obj;
@@ -43,6 +44,16 @@ void LoadTexture() {
     glGenTextures(TEX_NUM, texObject);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
     // CUBE
+#ifdef MIPMAP
+    for (int i = 0; i < 6; ++i) {
+        gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 4, 
+                width[i], height[i], GL_RGB, GL_UNSIGNED_BYTE, image[i]);
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    
+#else
     for (int i = 0; i < 6; ++i) {
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
                 width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
@@ -50,17 +61,24 @@ void LoadTexture() {
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+#endif
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
     glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
     glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
     
     for (int i = 6; i < 9; ++i) {
         glBindTexture(GL_TEXTURE_2D, texObject[i-5]);
+#ifdef MIPMAP
+        texObject[i-5] = SOIL_load_OGL_texture(picture[i].c_str(), SOIL_LOAD_AUTO, 
+                SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+#else
         texObject[i-5] = SOIL_load_OGL_texture(picture[i].c_str(), SOIL_LOAD_AUTO, 
                 SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+#endif
 
     }
 }
