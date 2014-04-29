@@ -31,27 +31,27 @@ float angle = 0.0f;
 float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
 
 void LoadTexture() {
-    glGenTextures(TEX_NUM, texObject);
 
     int width[9], height[9];
     unsigned char* image[9]; 
     for (int i = 0; i < 9; ++i) {
         image[i] = SOIL_load_image(picture[i].c_str(), &width[i], &height[i], 0, SOIL_LOAD_RGB);
+        if (image[i] == NULL)
+            std::cout << "Load image has error: " << picture[i] << std::endl;
     }
 
-    for (int i = 0; i < 9; ++i)
-
-    //glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
-    //// CUBE
-    //for (int i = 0; i < 6; ++i) {
-    //    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
-    //            width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
-    //}
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-    //glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-    //glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+    glGenTextures(TEX_NUM, texObject);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
+    // CUBE
+    for (int i = 0; i < 6; ++i) {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
+                width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+    glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
     
     for (int i = 6; i < 9; ++i) {
         glBindTexture(GL_TEXTURE_2D, texObject[i-5]);
@@ -59,6 +59,7 @@ void LoadTexture() {
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
     }
 }
 
@@ -140,10 +141,10 @@ void RenderScene(void) {
         std::string obj_file = object->obj_file;
         int texture_num = 0;
         if (obj_file == "ChessScene/Room.obj") {
-            //glActiveTexture(GL_TEXTURE0);
-            //glEnable(GL_TEXTURE_2D);
-            //glBindTexture(GL_TEXTURE_2D, texObject[3]);
-            //texture_num = 1;
+            glActiveTexture(GL_TEXTURE0);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, texObject[3]);
+            texture_num = 1;
         }
         else if (obj_file == "ChessScene/Chessboard.obj") {
             glActiveTexture(GL_TEXTURE0);
@@ -160,12 +161,12 @@ void RenderScene(void) {
             texture_num = 2;
         }
         else { // cube
-            //glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
-            //glEnable(GL_TEXTURE_GEN_S);
-            //glEnable(GL_TEXTURE_GEN_T);
-            //glEnable(GL_TEXTURE_GEN_R);
-            //glEnable(GL_TEXTURE_CUBE_MAP);
-            //texture_num = 1;
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
+            glEnable(GL_TEXTURE_GEN_S);
+            glEnable(GL_TEXTURE_GEN_T);
+            glEnable(GL_TEXTURE_GEN_R);
+            glEnable(GL_TEXTURE_CUBE_MAP);
+            texture_num = -1;
         }
             
 
@@ -186,9 +187,14 @@ void RenderScene(void) {
             glBegin(GL_TRIANGLES);
             for (size_t j=0;j<3;++j) {
                 //textex corrd. object->tList[object->faceList[i][j].t].ptr
-                for (int i = 0; i < texture_num; ++i) {
-                    glMultiTexCoord2fv(GL_TEXTURE0 + i, object->tList[object->faceList[i][j].t].ptr);
+                float* ptr = object->tList[object->faceList[i][j].t].ptr;
+                for (int k = 0; k < texture_num; ++k) {
+                    //glMultiTexCoord2fv(GL_TEXTURE0 + i, object->tList[object->faceList[i][j].t].ptr);
+                    glMultiTexCoord2f(GL_TEXTURE0 + k, ptr[0], ptr[1]);
                 //glTexCoord3fv(object->tList[object->faceList[i][j].t].ptr);
+                }
+                if (texture_num == -1) {
+                    glMultiTexCoord2f(GL_TEXTURE_CUBE_MAP, ptr[0], ptr[1]);
                 }
                 glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
                 glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
@@ -203,8 +209,11 @@ void RenderScene(void) {
         glDisable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        //glDisable(GL_TEXTURE_CUBE_MAP);
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        glDisable(GL_TEXTURE_CUBE_MAP);
+        glDisable(GL_TEXTURE_GEN_R);
+        glDisable(GL_TEXTURE_GEN_T);
+        glDisable(GL_TEXTURE_GEN_S);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
         glPopMatrix();
     }
 
