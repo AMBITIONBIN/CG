@@ -98,6 +98,7 @@ public:
 
     const char*                 obj_database;
 	std::string					matFile;
+    std::string                 obj_file;
 
 	size_t						mTotal;	// total material 
 	std::map<std::string,size_t>matMap;		// matMap[material_name] = material_ID

@@ -16,6 +16,7 @@ mesh::mesh(const char* obj_database, const char* obj_file)
 	mTotal = 0;		// mList[0] reserved for default meterial
 	vTotal = tTotal = nTotal = fTotal = 0;
     this->obj_database = obj_database;
+    this->obj_file = obj_file;
 	
 	Init(obj_file);
 }

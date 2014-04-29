@@ -36,17 +36,16 @@ void LoadTexture() {
     int width[9], height[9];
     unsigned char* image[9]; 
     for (int i = 0; i < 9; ++i) {
-        image[i] = SOIL_load_image( picture[i].c_str(), &width[i], &height[i], 0, SOIL_LOAD_RGB);
-        std::cout << picture[i] << std::endl;
+        image[i] = SOIL_load_image(picture[i].c_str(), &width[i], &height[i], 0, SOIL_LOAD_RGB);
     }
 
     for (int i = 0; i < 9; ++i) {
         glBindTexture(GL_TEXTURE_2D, texObject[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        SOIL_free_image_data(image[i]);
     }
 }
 
@@ -124,6 +123,33 @@ void RenderScene(void) {
         glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
         glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
 
+        // select texture
+        std::string obj_file = object->obj_file;
+        int texture_num = 0;
+        if (obj_file == "ChessScene/Room.obj") {
+            glActiveTexture(GL_TEXTURE0);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, texObject[7]);
+            texture_num = 1;
+        }
+        else if (obj_file == "ChessScene/Chessboard.obj") {
+            glActiveTexture(GL_TEXTURE0);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, texObject[6]);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+            glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+
+            glActiveTexture(GL_TEXTURE1);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, texObject[8]);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+            glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+            texture_num = 2;
+        }
+        else { // cube
+        }
+            
+
         for(size_t i=0;i < object->fTotal;++i) {
             // set material property if this face used different material
             if(lastMaterial != object->faceList[i].m) {
@@ -136,20 +162,22 @@ void RenderScene(void) {
                 //you can obtain the texture name by object->mList[lastMaterial].map_Kd
                 //load them once in the main function before mainloop
                 //bind them in display function here
-                glEnable(GL_TEXTURE_2D);
-                glBindTexture(GL_TEXTURE_2D, texObject[0]);
             }
-            // texture test
 
             glBegin(GL_TRIANGLES);
             for (size_t j=0;j<3;++j) {
                 //textex corrd. object->tList[object->faceList[i][j].t].ptr
                 glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
                 glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
-                glTexCoord3fv(object->tList[object->faceList[i][j].t].ptr);
+                for (int i = 0; i < texture_num; ++i) {
+                    glMultiTexCoord2fv(GL_TEXTURE0 + i, object->tList[object->faceList[i][j].t].ptr);
+                }
+                //glTexCoord3fv(object->tList[object->faceList[i][j].t].ptr);
             }
             glEnd();
         }
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_TEXTURE_2D);
         glPopMatrix();
     }
 
