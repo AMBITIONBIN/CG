@@ -72,24 +72,6 @@ void RenderScene(void) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    // texture test
-    glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(1.0, 1.0, 1.0);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texObject[0]);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 0.0);
-    glVertex3f(-50.0, 0.0, 0.0);
-    glTexCoord2f(0.0, 100.0);
-    glVertex3f(-50.0, 0.0, 100.0);
-    glTexCoord2f(100.0, 100.0);
-    glVertex3f(50.0, 0.0, 100.0);
-    glTexCoord2f(100.0, 0.0);
-    glVertex3f(50.0, 0.0, 0.0);
-    glEnd();
-    glFlush();
-    // end
-
     // Clear Color and Depth Buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -135,12 +117,16 @@ void RenderScene(void) {
                 //load them once in the main function before mainloop
                 //bind them in display function here
             }
+            // texture test
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, texObject[0]);
 
             glBegin(GL_TRIANGLES);
             for (size_t j=0;j<3;++j) {
                 //textex corrd. object->tList[object->faceList[i][j].t].ptr
                 glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
                 glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
+                glTexCoord3fv(object->tList[object->faceList[i][j].t].ptr);
             }
             glEnd();
         }
@@ -276,12 +262,12 @@ int main(int argc, char **argv) {
     glutInitWindowPosition(0,0);
     glutInitWindowSize(800,600);
     glutCreateWindow("Chess");
-    LoadTexture();
 
     // register callbacks
     glutDisplayFunc(RenderScene);
     glutReshapeFunc(Reshape);
     glutIdleFunc(RenderScene);
+    LoadTexture();
 
     // keyboard detect
     glutKeyboardFunc(ProcessNormalKeys);
