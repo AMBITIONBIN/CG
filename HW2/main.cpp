@@ -1,15 +1,28 @@
 #include <iostream>
 #include <vector>
+#include <string>
+#include "GL/glew.h"
 #include "GL/glut.h"
 #include "SOIL/SOIL.h"
 #include "scene.h"
-#define TEX_NUM 1
+#define TEX_NUM 9
 
 // load object
 scene* scene_obj;
 int WindowSize[2]; // = w & h
-GLuint texObject[TEX_NUM];
 
+// texture
+GLuint texObject[TEX_NUM];
+std::string picture[9] = { "ChessScene/Env_negative_x.bmp", 
+                           "ChessScene/Env_negative_y.bmp", 
+                           "ChessScene/Env_negative_z.bmp",
+                           "ChessScene/Env_positive_x.bmp", 
+                           "ChessScene/Env_positive_y.bmp", 
+                           "ChessScene/Env_positive_z.bmp",
+                           "ChessScene/Grid.bmp", 
+                           "ChessScene/Room.bmp", 
+                           "ChessScene/Wood.bmp"};
+    
 // object
 float red = 0.0f, green = 0.0f, blue = 0.0f;
 float angle = 0.0f;
@@ -18,16 +31,23 @@ float angle = 0.0f;
 float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
 
 void LoadTexture() {
-    // Room
-    int width, height;
-    unsigned char* image = SOIL_load_image("ChessScene/Room.bmp", &width, &height, 0, SOIL_LOAD_RGB);
     glGenTextures(TEX_NUM, texObject);
-    glBindTexture(GL_TEXTURE_2D, texObject[0]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+    int width[9], height[9];
+    unsigned char* image[9]; 
+    for (int i = 0; i < 9; ++i) {
+        image[i] = SOIL_load_image( picture[i].c_str(), &width[i], &height[i], 0, SOIL_LOAD_RGB);
+        std::cout << picture[i] << std::endl;
+    }
+
+    for (int i = 0; i < 9; ++i) {
+        glBindTexture(GL_TEXTURE_2D, texObject[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    }
 }
 
 void Reshape(GLsizei w, GLsizei h) {
@@ -116,10 +136,10 @@ void RenderScene(void) {
                 //you can obtain the texture name by object->mList[lastMaterial].map_Kd
                 //load them once in the main function before mainloop
                 //bind them in display function here
+                glEnable(GL_TEXTURE_2D);
+                glBindTexture(GL_TEXTURE_2D, texObject[0]);
             }
             // texture test
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, texObject[0]);
 
             glBegin(GL_TRIANGLES);
             for (size_t j=0;j<3;++j) {
@@ -263,11 +283,14 @@ int main(int argc, char **argv) {
     glutInitWindowSize(800,600);
     glutCreateWindow("Chess");
 
+    // texture
+    glewInit();
+    LoadTexture();
+
     // register callbacks
     glutDisplayFunc(RenderScene);
     glutReshapeFunc(Reshape);
     glutIdleFunc(RenderScene);
-    LoadTexture();
 
     // keyboard detect
     glutKeyboardFunc(ProcessNormalKeys);
