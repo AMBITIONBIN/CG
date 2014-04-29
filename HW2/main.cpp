@@ -47,6 +47,7 @@ void LoadTexture() {
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
                 width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
     }
+
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
@@ -55,11 +56,12 @@ void LoadTexture() {
     
     for (int i = 6; i < 9; ++i) {
         glBindTexture(GL_TEXTURE_2D, texObject[i-5]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        texObject[i-5] = SOIL_load_OGL_texture(picture[i].c_str(), SOIL_LOAD_AUTO, 
+                SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
     }
 }
 
@@ -123,8 +125,8 @@ void RenderScene(void) {
 
     // Set the camera
     gluLookAt(scene_obj->eye[0], scene_obj->eye[1], scene_obj->eye[2],
-            scene_obj->vat[0], scene_obj->vat[1], scene_obj->vat[2],
-            scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
+             scene_obj->vat[0], scene_obj->vat[1], scene_obj->vat[2],
+             scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
 
     Light();
 
@@ -144,6 +146,7 @@ void RenderScene(void) {
             glActiveTexture(GL_TEXTURE0);
             glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, texObject[3]);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
             texture_num = 1;
         }
         else if (obj_file == "ChessScene/Chessboard.obj") {
@@ -160,15 +163,15 @@ void RenderScene(void) {
             glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
             texture_num = 2;
         }
-        else { // cube
+        else if (k > 17) { // cube
+            glEnable(GL_TEXTURE_CUBE_MAP);
             glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);
             glEnable(GL_TEXTURE_GEN_R);
-            glEnable(GL_TEXTURE_CUBE_MAP);
             texture_num = -1;
         }
-            
 
         for(size_t i=0;i < object->fTotal;++i) {
             // set material property if this face used different material
@@ -178,23 +181,13 @@ void RenderScene(void) {
                 glMaterialfv(GL_FRONT, GL_DIFFUSE  , object->mList[lastMaterial].Kd);
                 glMaterialfv(GL_FRONT, GL_SPECULAR , object->mList[lastMaterial].Ks);
                 glMaterialfv(GL_FRONT, GL_SHININESS, &object->mList[lastMaterial].Ns);
-
-                //you can obtain the texture name by object->mList[lastMaterial].map_Kd
-                //load them once in the main function before mainloop
-                //bind them in display function here
             }
 
             glBegin(GL_TRIANGLES);
             for (size_t j=0;j<3;++j) {
                 //textex corrd. object->tList[object->faceList[i][j].t].ptr
-                float* ptr = object->tList[object->faceList[i][j].t].ptr;
-                for (int k = 0; k < texture_num; ++k) {
-                    //glMultiTexCoord2fv(GL_TEXTURE0 + i, object->tList[object->faceList[i][j].t].ptr);
-                    glMultiTexCoord2f(GL_TEXTURE0 + k, ptr[0], ptr[1]);
-                //glTexCoord3fv(object->tList[object->faceList[i][j].t].ptr);
-                }
-                if (texture_num == -1) {
-                    glMultiTexCoord2f(GL_TEXTURE_CUBE_MAP, ptr[0], ptr[1]);
+                for (int mm = 0; mm < texture_num; ++mm) {
+                    glMultiTexCoord3fv(GL_TEXTURE0 + mm, object->tList[object->faceList[i][j].t].ptr);
                 }
                 glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
                 glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
