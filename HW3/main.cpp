@@ -1,10 +1,10 @@
 #include <iostream>
-#include <vector>
 #include <string>
 #include "GL/glew.h"
 #include "GL/glut.h"
 #include "SOIL/SOIL.h"
 #include "scene.h"
+#include "shader.h"
 #define TEX_NUM 3
 #define MIPMAP
 
@@ -25,6 +25,155 @@ GLhandleARB MyShader;
 float red = 0.0f, green = 0.0f, blue = 0.0f;
 float angle = 0.0f;
 float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
+
+void LoadShaders() {
+    MyShader = glCreateProgram();
+    if(MyShader != 0)
+    {   
+        ShaderLoad(MyShader, "ShaderCode/PhongShading.vs", GL_VERTEX_SHADER);
+        ShaderLoad(MyShader, "ShaderCode/PhongShading.fs", GL_FRAGMENT_SHADER);
+    }   
+}
+
+GLuint v, f, f2, p, g;			//Handlers for our vertex, geometry, and fragment shaders
+char *textFileRead(char *fn) {
+	FILE *fp;
+	char *content = NULL;
+
+	int count=0;
+
+	if (fn != NULL) {
+		
+		fp = fopen(fn,"rt");
+
+		if (fp != NULL) {
+      
+        		fseek(fp, 0, SEEK_END);
+        		count = ftell(fp);
+        		rewind(fp);
+
+			if (count > 0) {
+				content = (char *)malloc(sizeof(char) * (count+1));
+				count = fread(content,sizeof(char),count,fp);
+				content[count] = '\0';
+			}
+			fclose(fp);
+		
+		}
+	}
+
+	return content;
+}
+
+//Function from: http://www.evl.uic.edu/aej/594/code/ogl.cpp
+//Read in a textfile (GLSL program)
+// we can use this to write to a text file
+int textFileWrite(char *fn, char *s) {
+	FILE *fp;
+	int status = 0;
+
+	if (fn != NULL) {
+		fp = fopen(fn,"w");
+
+		if (fp != NULL) {
+			
+			if (fwrite(s,sizeof(char),strlen(s),fp) == strlen(s))
+				status = 1;
+			fclose(fp);
+		}
+	}
+	return(status);
+}
+
+//Got this from http://www.lighthouse3d.com/opengl/glsl/index.php?oglinfo
+// it prints out shader info (debugging!)
+void printShaderInfoLog(GLuint obj) {
+    int infologLength = 0;
+    int charsWritten  = 0;
+    char *infoLog;
+    glGetShaderiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
+    if (infologLength > 0)
+    {
+        infoLog = (char *)malloc(infologLength);
+        glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
+		printf("printShaderInfoLog: %s\n",infoLog);
+        free(infoLog);
+	}else{
+		printf("Shader Info Log: OK\n");
+	}
+}
+
+//Got this from http://www.lighthouse3d.com/opengl/glsl/index.php?oglinfo
+// it prints out shader info (debugging!)
+void printProgramInfoLog(GLuint obj)
+{
+    int infologLength = 0;
+    int charsWritten  = 0;
+    char *infoLog;
+	glGetProgramiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
+    if (infologLength > 0)
+    {
+        infoLog = (char *)malloc(infologLength);
+        glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
+		printf("printProgramInfoLog: %s\n",infoLog);
+        free(infoLog);
+    }else{
+		printf("Program Info Log: OK\n");
+	}
+}
+
+void SetShaders() {
+	//a few strings
+	// will hold onto the file read in!
+	char *vs = NULL, *fs = NULL, *gs = NULL;
+
+	//First, create our shaders 
+	v = glCreateShader(GL_VERTEX_SHADER);
+	f = glCreateShader(GL_FRAGMENT_SHADER);
+	//g = glCreateShader(GL_GEOMETRY_SHADER);
+
+	//Read in the programs
+	vs = textFileRead("ShaderCode/shader.vert");
+	fs = textFileRead("ShaderCode/shader.frag");
+	//gs = textFileRead("ShaderCode/shader.geom");
+
+	//Setup a few constant pointers for below
+	const char * ff = fs;
+	const char * vv = vs;
+	const char * gg = gs;
+
+	glShaderSource(v, 1, &vv, NULL);
+	glShaderSource(f, 1, &ff, NULL);
+	//glShaderSource(g, 1, &gg, NULL);
+
+	free(vs);free(fs);//free(gs);
+
+	glCompileShader(v);
+	glCompileShader(f);
+	//glCompileShader(g);
+
+	MyShader = glCreateProgram();
+
+	glAttachShader(MyShader, v);
+	glAttachShader(MyShader, f);
+	//glAttachShader(MyShader,g);
+
+	//glProgramParameteri(MyShader, GL_GEOMETRY_INPUT_TYPE, GL_LINES);
+	//glProgramParameteri(MyShader, GL_GEOMETRY_OUTPUT_TYPE, GL_LINE_STRIP);
+
+	//int temp;
+	//glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES, &temp);
+	//glProgramParameteri(MyShader, GL_GEOMETRY_VERTICES_OUT, temp);
+
+	glLinkProgram(MyShader);
+	glUseProgram(MyShader);
+
+	printShaderInfoLog(v);
+	printShaderInfoLog(f);
+	//printShaderInfoLog(g);
+	printProgramInfoLog(MyShader);
+}
+	
 
 void LoadTexture() {
 
@@ -119,6 +268,9 @@ void RenderScene(void) {
              scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
 
     Light();
+    glDepthFunc(GL_LEQUAL);                    // The Type Of Depth Test To Do
+    glLinkProgram(MyShader);
+    glUseProgram(MyShader);
 
     int lastMaterial = -1;
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
@@ -130,24 +282,38 @@ void RenderScene(void) {
         glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
 
         // select texture
+/*
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
+        int texture_location = glGetUniformLocation(MyShader, "color_texture");
+        if(texture_location == -1) 
+            printf("Cant find texture name: color_texture\n");
+        else 
+            glUniform1i(texture_location, 0); 
         glBindTexture(GL_TEXTURE_2D, texObject[0]);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-        glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 
+        // normal map
         glActiveTexture(GL_TEXTURE1);
         glEnable(GL_TEXTURE_2D);
+        int normal_location = glGetUniformLocation(MyShader, "normal_texture");  
+        if(normal_location == -1) 
+            printf("Cant find texture name: normal_texture\n");
+        else 
+            glUniform1i(normal_location, 1); 
+        glUniform1i(normal_location, 1);
         glBindTexture(GL_TEXTURE_2D, texObject[1]);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-        glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 
         glActiveTexture(GL_TEXTURE2);
         glEnable(GL_TEXTURE_2D);
+        int location = glGetUniformLocation(MyShader, "texObject[2]");
+        if(location == -1) 
+            printf("Cant find texture name: colorTexture\n");
+        else 
+            glUniform1i(location, 0); 
         glBindTexture(GL_TEXTURE_2D, texObject[2]);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-        glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-        int texture_num = 3;
+*/
+
+        int texture_num = 0;
 
         for(size_t i=0;i < object->fTotal;++i) {
             // set material property if this face used different material
@@ -163,7 +329,7 @@ void RenderScene(void) {
             for (size_t j=0;j<3;++j) {
                 //textex corrd. object->tList[object->faceList[i][j].t].ptr
                 for (int mm = 0; mm < texture_num; ++mm) {
-                    glMultiTexCoord3fv(GL_TEXTURE0 + mm, object->tList[object->faceList[i][j].t].ptr);
+                    glMultiTexCoord3fv(GL_TEXTURE2 + mm, object->tList[object->faceList[i][j].t].ptr);
                 }
                 glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
                 glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
@@ -185,7 +351,9 @@ void RenderScene(void) {
         glPopMatrix();
     }
 
+    glUseProgram(0);
     glutSwapBuffers();
+    //glutPostRedisplay();
 }
 
 void ProcessNormalKeys(unsigned char key, int x, int y) {
@@ -318,13 +486,33 @@ int main(int argc, char **argv) {
     GLenum glew_error;
     if((glew_error = glewInit()) != GLEW_OK) return -1;
 
+
+    // test
+	if (glewIsSupported("GL_VERSION_2_1"))
+        printf("Ready for OpenGL 2.1\n");
+	else {
+		printf("OpenGL 2.1 not supported\n");
+		exit(1);
+	}
+
+	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader && GL_EXT_geometry_shader4)
+		printf("Ready for GLSL - vertex, fragment, and geometry units\n");
+	else {
+		printf("Not totally ready :( \n");
+		exit(1);
+	}
+
     // texture
     LoadTexture();
+    LoadShaders();
+    //SetShaders();
 
     // register callbacks
     glutDisplayFunc(RenderScene);
     glutReshapeFunc(Reshape);
     glutIdleFunc(RenderScene);
+
+    // shader
 
     // keyboard detect
     glutKeyboardFunc(ProcessNormalKeys);
