@@ -5,7 +5,7 @@
 #include "GL/glut.h"
 #include "SOIL/SOIL.h"
 #include "scene.h"
-#define TEX_NUM 4
+#define TEX_NUM 3
 #define MIPMAP
 
 // load object
@@ -14,67 +14,40 @@ int WindowSize[2]; // = w & h
 
 // texture
 GLuint texObject[TEX_NUM];
-std::string picture[9] = { "ChessScene/Env_positive_x.bmp", 
-                           "ChessScene/Env_negative_x.bmp", 
-                           "ChessScene/Env_positive_y.bmp", 
-                           "ChessScene/Env_negative_y.bmp", 
-                           "ChessScene/Env_positive_z.bmp",
-                           "ChessScene/Env_negative_z.bmp",
-                           "ChessScene/Grid.bmp", 
-                           "ChessScene/Wood.bmp",
-                           "ChessScene/Room.bmp"};
+std::string picture[3] = {  "TestScene/diffuse.bmp",
+                            "TestScene/normal.bmp",
+                            "TestScene/specular.bmp" };
+
+// Shader
+GLhandleARB MyShader;
     
-// object
+// object & background
 float red = 0.0f, green = 0.0f, blue = 0.0f;
 float angle = 0.0f;
-
-// background
 float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
 
 void LoadTexture() {
 
-    int width[9], height[9];
-    unsigned char* image[9]; 
-    for (int i = 0; i < 9; ++i) {
+    int width[3], height[3];
+    unsigned char* image[3]; 
+    for (int i = 0; i < 3; ++i) {
         image[i] = SOIL_load_image(picture[i].c_str(), &width[i], &height[i], 0, SOIL_LOAD_RGB);
         if (image[i] == NULL)
             std::cout << "Load image has error: " << picture[i] << std::endl;
+        else
+            std::cout << "Load image: " << picture[i] << std::endl;
     }
 
     glGenTextures(TEX_NUM, texObject);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
-    // CUBE
+    for (int i = 0; i < 3; ++i) {
+        glBindTexture(GL_TEXTURE_2D, texObject[i]);
 #ifdef MIPMAP
-    for (int i = 0; i < 6; ++i) {
-        gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 4, 
-                width[i], height[i], GL_RGB, GL_UNSIGNED_BYTE, image[i]);
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    
-#else
-    for (int i = 0; i < 6; ++i) {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
-                width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, image[i]);
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-#endif
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-    glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-    
-    for (int i = 6; i < 9; ++i) {
-        glBindTexture(GL_TEXTURE_2D, texObject[i-5]);
-#ifdef MIPMAP
-        texObject[i-5] = SOIL_load_OGL_texture(picture[i].c_str(), SOIL_LOAD_AUTO, 
+        texObject[i] = SOIL_load_OGL_texture(picture[i].c_str(), SOIL_LOAD_AUTO, 
                 SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 #else
-        texObject[i-5] = SOIL_load_OGL_texture(picture[i].c_str(), SOIL_LOAD_AUTO, 
+        texObject[i] = SOIL_load_OGL_texture(picture[i].c_str(), SOIL_LOAD_AUTO, 
                 SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -96,7 +69,6 @@ void Light() {
 
     // enable lighting
     glEnable(GL_LIGHTING);
-
 
     for (int i = 0, j = scene_obj->lights.size(); i < j; ++i) {
 
@@ -158,38 +130,24 @@ void RenderScene(void) {
         glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
 
         // select texture
-        std::string obj_file = object->obj_file;
-        int texture_num = 0;
-        if (obj_file == "ChessScene/Room.obj") {
-            glActiveTexture(GL_TEXTURE0);
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, texObject[3]);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-            texture_num = 1;
-        }
-        else if (obj_file == "ChessScene/Chessboard.obj") {
-            glActiveTexture(GL_TEXTURE0);
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, texObject[1]);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-            glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texObject[0]);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+        glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 
-            glActiveTexture(GL_TEXTURE1);
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, texObject[2]);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-            glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-            texture_num = 2;
-        }
-        else if (k > 17) { // cube
-            glEnable(GL_TEXTURE_CUBE_MAP);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, texObject[0]);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-            glEnable(GL_TEXTURE_GEN_S);
-            glEnable(GL_TEXTURE_GEN_T);
-            glEnable(GL_TEXTURE_GEN_R);
-            texture_num = -1;
-        }
+        glActiveTexture(GL_TEXTURE1);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texObject[1]);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+        glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+
+        glActiveTexture(GL_TEXTURE2);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texObject[2]);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+        glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+        int texture_num = 3;
 
         for(size_t i=0;i < object->fTotal;++i) {
             // set material property if this face used different material
@@ -212,6 +170,10 @@ void RenderScene(void) {
             }
             glEnd();
         }
+        glActiveTexture(GL_TEXTURE2);
+        glDisable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
         glActiveTexture(GL_TEXTURE1);
         glDisable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -220,11 +182,6 @@ void RenderScene(void) {
         glDisable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glDisable(GL_TEXTURE_CUBE_MAP);
-        glDisable(GL_TEXTURE_GEN_R);
-        glDisable(GL_TEXTURE_GEN_T);
-        glDisable(GL_TEXTURE_GEN_S);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
         glPopMatrix();
     }
 
@@ -349,17 +306,19 @@ void ProcessMouseActiveMotion(int x, int y) {
 
 int main(int argc, char **argv) {
 
-    scene_obj = new scene("ChessScene/", "Chess");
+    scene_obj = new scene("TestScene/", "ShaderAssignment");
 
     // init GLUT and create window
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(0,0);
-    glutInitWindowSize(800,600);
-    glutCreateWindow("Chess");
+    glutInitWindowSize(500,500);
+    glutCreateWindow("Shadding");
+
+    GLenum glew_error;
+    if((glew_error = glewInit()) != GLEW_OK) return -1;
 
     // texture
-    glewInit();
     LoadTexture();
 
     // register callbacks
