@@ -122,59 +122,6 @@ void printProgramInfoLog(GLuint obj)
 	}
 }
 
-void SetShaders() {
-	//a few strings
-	// will hold onto the file read in!
-	char *vs = NULL, *fs = NULL, *gs = NULL;
-
-	//First, create our shaders 
-	v = glCreateShader(GL_VERTEX_SHADER);
-	f = glCreateShader(GL_FRAGMENT_SHADER);
-	//g = glCreateShader(GL_GEOMETRY_SHADER);
-
-	//Read in the programs
-	vs = textFileRead("ShaderCode/shader.vert");
-	fs = textFileRead("ShaderCode/shader.frag");
-	//gs = textFileRead("ShaderCode/shader.geom");
-
-	//Setup a few constant pointers for below
-	const char * ff = fs;
-	const char * vv = vs;
-	const char * gg = gs;
-
-	glShaderSource(v, 1, &vv, NULL);
-	glShaderSource(f, 1, &ff, NULL);
-	//glShaderSource(g, 1, &gg, NULL);
-
-	free(vs);free(fs);//free(gs);
-
-	glCompileShader(v);
-	glCompileShader(f);
-	//glCompileShader(g);
-
-	MyShader = glCreateProgram();
-
-	glAttachShader(MyShader, v);
-	glAttachShader(MyShader, f);
-	//glAttachShader(MyShader,g);
-
-	//glProgramParameteri(MyShader, GL_GEOMETRY_INPUT_TYPE, GL_LINES);
-	//glProgramParameteri(MyShader, GL_GEOMETRY_OUTPUT_TYPE, GL_LINE_STRIP);
-
-	//int temp;
-	//glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES, &temp);
-	//glProgramParameteri(MyShader, GL_GEOMETRY_VERTICES_OUT, temp);
-
-	glLinkProgram(MyShader);
-	glUseProgram(MyShader);
-
-	printShaderInfoLog(v);
-	printShaderInfoLog(f);
-	//printShaderInfoLog(g);
-	printProgramInfoLog(MyShader);
-}
-	
-
 void LoadTexture() {
 
     int width[3], height[3];
@@ -268,9 +215,6 @@ void RenderScene(void) {
              scene_obj->vup[0], scene_obj->vup[1], scene_obj->vup[2]);
 
     Light();
-    glDepthFunc(GL_LEQUAL);                    // The Type Of Depth Test To Do
-    glLinkProgram(MyShader);
-    glUseProgram(MyShader);
 
     int lastMaterial = -1;
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
@@ -281,39 +225,37 @@ void RenderScene(void) {
         glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
         glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
 
+        glUseProgram(MyShader);
+
         // select texture
-/*
         glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
-        int texture_location = glGetUniformLocation(MyShader, "color_texture");
+        glBindTexture(GL_TEXTURE_2D, texObject[0]);
+        GLint texture_location = glGetUniformLocation(MyShader, "diffuseTexture");
         if(texture_location == -1) 
-            printf("Cant find texture name: color_texture\n");
+            printf("Cant find texture name: diffuseTexture\n");
         else 
             glUniform1i(texture_location, 0); 
-        glBindTexture(GL_TEXTURE_2D, texObject[0]);
 
         // normal map
         glActiveTexture(GL_TEXTURE1);
         glEnable(GL_TEXTURE_2D);
-        int normal_location = glGetUniformLocation(MyShader, "normal_texture");  
+        int normal_location = glGetUniformLocation(MyShader, "normalTexture");  
         if(normal_location == -1) 
-            printf("Cant find texture name: normal_texture\n");
+            printf("Cant find texture name: normalTexture\n");
         else 
             glUniform1i(normal_location, 1); 
-        glUniform1i(normal_location, 1);
         glBindTexture(GL_TEXTURE_2D, texObject[1]);
 
         glActiveTexture(GL_TEXTURE2);
         glEnable(GL_TEXTURE_2D);
-        int location = glGetUniformLocation(MyShader, "texObject[2]");
+        int location = glGetUniformLocation(MyShader, "colorTexture");
         if(location == -1) 
             printf("Cant find texture name: colorTexture\n");
         else 
-            glUniform1i(location, 0); 
+            glUniform1i(location, 2); 
         glBindTexture(GL_TEXTURE_2D, texObject[2]);
-*/
 
-        int texture_num = 0;
+        int texture_num = 1;
 
         for(size_t i=0;i < object->fTotal;++i) {
             // set material property if this face used different material
@@ -329,7 +271,7 @@ void RenderScene(void) {
             for (size_t j=0;j<3;++j) {
                 //textex corrd. object->tList[object->faceList[i][j].t].ptr
                 for (int mm = 0; mm < texture_num; ++mm) {
-                    glMultiTexCoord3fv(GL_TEXTURE2 + mm, object->tList[object->faceList[i][j].t].ptr);
+                    glMultiTexCoord3fv(GL_TEXTURE0 + mm, object->tList[object->faceList[i][j].t].ptr);
                 }
                 glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
                 glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
@@ -503,9 +445,8 @@ int main(int argc, char **argv) {
 	}
 
     // texture
-    LoadTexture();
     LoadShaders();
-    //SetShaders();
+    LoadTexture();
 
     // register callbacks
     glutDisplayFunc(RenderScene);
