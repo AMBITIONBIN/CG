@@ -17,7 +17,7 @@ float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
 GLfloat spot_light[3];
 
 float ans[3];
-void find_vec(float point[3], int size = 1) {
+void find_vec(float point[3], double size = 1) {
     ans[0] = point[0] + (point[0] - spot_light[0])*size;
     ans[1] = point[1] + (point[1] - spot_light[1])*size;
     ans[2] = point[2] + (point[2] - spot_light[2])*size;
@@ -28,7 +28,7 @@ void Reshape(GLsizei w, GLsizei h) {
     WindowSize[1] = h;
 }
 
-void Light() {
+void Light(bool special=false) {
     glShadeModel(GL_SMOOTH);
 
     // z buffer enable
@@ -45,6 +45,17 @@ void Light() {
         GLfloat light_specular[] = {0, 0, 0, 0};
         GLfloat light_diffuse[] = {0, 0, 0, 0};
         GLfloat light_ambient[] = {light_tmp.ar, light_tmp.ag, light_tmp.sb, 1.0f};
+
+        if (special) {
+            light_specular[0] = light_tmp.sr; 
+            light_specular[1] = light_tmp.sg; 
+            light_specular[2] = light_tmp.sb; 
+            light_specular[3] = 1.0f;
+            light_diffuse[0] = light_tmp.dr; 
+            light_diffuse[1] = light_tmp.dg; 
+            light_diffuse[2] = light_tmp.db; 
+            light_diffuse[3] = 1.0f;
+        }
 
         spot_light[0] = light_tmp.x; 
         spot_light[1] = light_tmp.y; 
@@ -128,16 +139,14 @@ void RenderScene(void) {
         glPopMatrix();
     }
 
-    glUseProgram(0);
-
+    Light(true);
     // fill the z-buffer, or whatever
     glDepthMask(GL_TRUE);
-    glColorMask(1, 0, 0, 0);
+    glColorMask(1, 1, 1, 1);
     glCullFace(GL_BACK);
 
-    glStencilFunc(GL_GEQUAL, spot_light[1], 0xff);
-    glStencilOp(GL_INCR, GL_INCR, GL_INCR);
-    //glutSolidCube(8.0);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+    glStencilFunc(GL_ALWAYS, 1, 0xff);
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
         mesh* object = scene_obj->object[k].mesh_object;
         model model_tmp = scene_obj->object[k];
@@ -150,15 +159,22 @@ void RenderScene(void) {
         if (obj_file == "TestScene/Ground.obj") continue;
 
         for(size_t i=0;i < object->fTotal;++i) {
-            find_vec(object->vList[object->faceList[i][0].v].ptr);
+            find_vec(object->vList[object->faceList[i][0].v].ptr, 0.4);
             float endpoint0[] = {ans[0], ans[1], ans[2]};
 
-            find_vec(object->vList[object->faceList[i][1].v].ptr);
+            find_vec(object->vList[object->faceList[i][1].v].ptr, 0.4);
             float endpoint1[] = {ans[0], ans[1], ans[2]};
 
-            find_vec(object->vList[object->faceList[i][2].v].ptr);
+            find_vec(object->vList[object->faceList[i][2].v].ptr, 0.4);
             float endpoint2[] = {ans[0], ans[1], ans[2]};
 
+            //glBegin(GL_TRIANGLES);
+            //for (size_t j=0;j<3;++j) {
+            //    //textex corrd. object->tList[object->faceList[i][j].t].ptr
+            //    glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
+            //    glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
+            //}
+            //glEnd();
             glBegin(GL_QUADS);
                 glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
                 glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
@@ -177,13 +193,82 @@ void RenderScene(void) {
                 glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
                 glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
             glEnd();
+            //glBegin(GL_TRIANGLES);
+            //    glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
+            //    glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
+            //    glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
+            //glEnd();
         }
         glPopMatrix();
     }
     
-    glDepthMask(GL_FALSE);
+    // fill the z-buffer, or whatever
+    glDepthMask(GL_TRUE);
     glColorMask(1, 1, 1, 1);
+    glCullFace(GL_FRONT);
 
+    glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+    glStencilFunc(GL_ALWAYS, 1, 0xff);
+    for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
+        mesh* object = scene_obj->object[k].mesh_object;
+        model model_tmp = scene_obj->object[k];
+        glPushMatrix();
+        glTranslatef(model_tmp.Tx, model_tmp.Ty, model_tmp.Tz);
+        glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
+        glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
+
+        std::string obj_file = object->obj_file;
+        if (obj_file == "TestScene/Ground.obj") continue;
+
+        for(size_t i=0;i < object->fTotal;++i) {
+            find_vec(object->vList[object->faceList[i][0].v].ptr, 0.4);
+            float endpoint0[] = {ans[0], ans[1], ans[2]};
+
+            find_vec(object->vList[object->faceList[i][1].v].ptr, 0.4);
+            float endpoint1[] = {ans[0], ans[1], ans[2]};
+
+            find_vec(object->vList[object->faceList[i][2].v].ptr, 0.4);
+            float endpoint2[] = {ans[0], ans[1], ans[2]};
+
+            //glBegin(GL_TRIANGLES);
+            //for (size_t j=0;j<3;++j) {
+            //    //textex corrd. object->tList[object->faceList[i][j].t].ptr
+            //    glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
+            //    glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
+            //}
+            //glEnd();
+            glBegin(GL_QUADS);
+                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+                glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
+                glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
+            glEnd();
+            glBegin(GL_QUADS);
+                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
+                glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
+            glEnd();
+            glBegin(GL_QUADS);
+                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
+                glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
+            glEnd();
+            //glBegin(GL_TRIANGLES);
+            //    glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
+            //    glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
+            //    glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
+            //glEnd();
+        }
+        glPopMatrix();
+    }
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glStencilFunc(GL_EQUAL, 0, 0xff);
+    glStencilOp(GL_INVERT, GL_INVERT, GL_KEEP);
+
+    
     //glStencilFunc(GL_ALWAYS, 1, 1);
     //glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
     //glColor3f(1.0, 1.0, 1.0);
@@ -318,7 +403,7 @@ int main(int argc, char **argv) {
 
     // init GLUT and create window
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_STENCIL);
     glutInitWindowPosition(0,0);
     glutInitWindowSize(800,600);
     glutCreateWindow("Shadow");
