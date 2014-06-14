@@ -3,7 +3,6 @@
 #include "GL/glew.h"
 #include "GL/glut.h"
 #include "scene.h"
-#define DEBUG
 
 // load object
 scene* scene_obj;
@@ -17,10 +16,25 @@ float b_red = 0.0f, b_green = 0.0f, b_blue = 0.0f;
 GLfloat spot_light[3];
 
 float ans[3];
+
 void find_vec(float point[3], double size = 1) {
     ans[0] = point[0] + (point[0] - spot_light[0])*size;
     ans[1] = point[1] + (point[1] - spot_light[1])*size;
     ans[2] = point[2] + (point[2] - spot_light[2])*size;
+}
+
+bool front_face(float x[3], float y[3], float z[3]) {
+    float A[] = {y[0] - x[0], y[1] - x[1], y[2] - x[2]};
+    float B[] = {z[0] - x[0], z[1] - x[1], z[2] - x[2]};
+    float normal[] = {A[1]*B[2] - A[2]*B[1],
+                      A[2]*B[0] - A[0]*B[2],
+                      A[0]*B[1] - A[1]*B[0]};
+
+    float inner = (x[0]-spot_light[0])*normal[0] + 
+                  (x[1]-spot_light[1])*normal[1] +
+                  (x[2]-spot_light[2])*normal[2];
+    
+    return inner < 0;
 }
 
 void Reshape(GLsizei w, GLsizei h) {
@@ -140,7 +154,6 @@ void RenderScene(void) {
         glPopMatrix();
     }
 
-    Light(true);
     // fill the z-buffer, or whatever
     glDepthMask(GL_FALSE);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -157,47 +170,72 @@ void RenderScene(void) {
         glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
         glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
 
-        std::string obj_file = object->obj_file;
-        if (obj_file == "TestScene/Ground.obj") continue;
-
         for(size_t i=0;i < object->fTotal;++i) {
-            find_vec(object->vList[object->faceList[i][0].v].ptr, 0.4);
-            float endpoint0[] = {ans[0], ans[1], ans[2]};
+            float* x = object->vList[object->faceList[i][0].v].ptr;
+            float* y = object->vList[object->faceList[i][1].v].ptr;
+            float* z = object->vList[object->faceList[i][2].v].ptr;
 
-            find_vec(object->vList[object->faceList[i][1].v].ptr, 0.4);
-            float endpoint1[] = {ans[0], ans[1], ans[2]};
+            bool is_front = front_face(x, y, z);
+            
+            // find points use to draw shadow polygon
+            find_vec(x, 0.4);
+            float endpointx[] = {ans[0], ans[1], ans[2]};
+            find_vec(y, 0.4);
+            float endpointy[] = {ans[0], ans[1], ans[2]};
+            find_vec(z, 0.4);
+            float endpointz[] = {ans[0], ans[1], ans[2]};
 
-            find_vec(object->vList[object->faceList[i][2].v].ptr, 0.4);
-            float endpoint2[] = {ans[0], ans[1], ans[2]};
-
-            glBegin(GL_QUADS);
-                glVertex3fv(endpoint0);
-                glVertex3fv(endpoint1);
-                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(endpoint1);
-                glVertex3fv(endpoint2);
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(endpoint2);
-                glVertex3fv(endpoint0);
-                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
-            glEnd();
+            if (is_front) {
+                glBegin(GL_QUADS);
+                    glVertex3fv(endpointx);
+                    glVertex3fv(endpointy);
+                    glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+                    glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(endpointy);
+                    glVertex3fv(endpointz);
+                    glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                    glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(endpointz);
+                    glVertex3fv(endpointx);
+                    glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                    glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                glEnd();
+            }
+            else {
+                glBegin(GL_QUADS);
+                    glVertex3fv(x);	
+                    glVertex3fv(y);	
+                    glVertex3fv(endpointy);
+                    glVertex3fv(endpointx);
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(y);	
+                    glVertex3fv(z);	
+                    glVertex3fv(endpointz);
+                    glVertex3fv(endpointy);
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(z);	
+                    glVertex3fv(x);	
+                    glVertex3fv(endpointx);
+                    glVertex3fv(endpointz);
+                glEnd();
+            }
         }
         glPopMatrix();
     }
-    
     // fill the z-buffer, or whatever
+    glDepthMask(GL_FALSE);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
 
     glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-    glStencilFunc(GL_ALWAYS, 1, 1);
+    glStencilFunc(GL_ALWAYS, 1, 0xff);
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
         mesh* object = scene_obj->object[k].mesh_object;
         model model_tmp = scene_obj->object[k];
@@ -206,41 +244,66 @@ void RenderScene(void) {
         glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
         glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
 
-        std::string obj_file = object->obj_file;
-        if (obj_file == "TestScene/Ground.obj") continue;
-
         for(size_t i=0;i < object->fTotal;++i) {
-            find_vec(object->vList[object->faceList[i][0].v].ptr, 0.4);
-            float endpoint0[] = {ans[0], ans[1], ans[2]};
+            float* x = object->vList[object->faceList[i][0].v].ptr;
+            float* y = object->vList[object->faceList[i][1].v].ptr;
+            float* z = object->vList[object->faceList[i][2].v].ptr;
 
-            find_vec(object->vList[object->faceList[i][1].v].ptr, 0.4);
-            float endpoint1[] = {ans[0], ans[1], ans[2]};
+            bool is_front = front_face(x, y, z);
+            
+            // find points use to draw shadow polygon
+            find_vec(x, 0.4);
+            float endpointx[] = {ans[0], ans[1], ans[2]};
+            find_vec(y, 0.4);
+            float endpointy[] = {ans[0], ans[1], ans[2]};
+            find_vec(z, 0.4);
+            float endpointz[] = {ans[0], ans[1], ans[2]};
 
-            find_vec(object->vList[object->faceList[i][2].v].ptr, 0.4);
-            float endpoint2[] = {ans[0], ans[1], ans[2]};
-
-            glBegin(GL_QUADS);
-                glVertex3fv(endpoint0);
-                glVertex3fv(endpoint1);
-                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(endpoint1);
-                glVertex3fv(endpoint2);
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(endpoint2);
-                glVertex3fv(endpoint0);
-                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
-            glEnd();
+            if (is_front) {
+                glBegin(GL_QUADS);
+                    glVertex3fv(endpointx);
+                    glVertex3fv(endpointy);
+                    glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+                    glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(endpointy);
+                    glVertex3fv(endpointz);
+                    glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                    glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(endpointz);
+                    glVertex3fv(endpointx);
+                    glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                    glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                glEnd();
+            }
+            else {
+                glBegin(GL_QUADS);
+                    glVertex3fv(x);	
+                    glVertex3fv(y);	
+                    glVertex3fv(endpointy);
+                    glVertex3fv(endpointx);
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(y);	
+                    glVertex3fv(z);	
+                    glVertex3fv(endpointz);
+                    glVertex3fv(endpointy);
+                glEnd();
+                glBegin(GL_QUADS);
+                    glVertex3fv(z);	
+                    glVertex3fv(x);	
+                    glVertex3fv(endpointx);
+                    glVertex3fv(endpointz);
+                glEnd();
+            }
         }
         glPopMatrix();
     }
 
+    Light(true);
     glClear(GL_DEPTH_BUFFER_BIT);
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_TRUE);
