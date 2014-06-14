@@ -61,11 +61,11 @@ void Light(bool special=false) {
         spot_light[1] = light_tmp.y; 
         spot_light[2] = light_tmp.z;
         
-        glLightfv(GL_LIGHT0 + i, GL_POSITION, light_position);
-        glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, light_diffuse);
-        glLightfv(GL_LIGHT0 + i, GL_SPECULAR, light_specular);
-        glLightfv(GL_LIGHT0 + i, GL_AMBIENT, light_ambient);
-        glEnable(GL_LIGHT0 + i);
+        glLightfv(GL_LIGHT1 + i, GL_POSITION, light_position);
+        glLightfv(GL_LIGHT1 + i, GL_DIFFUSE, light_diffuse);
+        glLightfv(GL_LIGHT1 + i, GL_SPECULAR, light_specular);
+        glLightfv(GL_LIGHT1 + i, GL_AMBIENT, light_ambient);
+        glEnable(GL_LIGHT1 + i);
     }
 
     GLfloat l_ambient[] = {scene_obj->ambient[0], scene_obj->ambient[1], scene_obj->ambient[2], 1.0f};
@@ -104,8 +104,10 @@ void RenderScene(void) {
 
     //stencil
     glEnable(GL_DEPTH_TEST);
-
     glEnable(GL_STENCIL_TEST);
+    glDisable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glClearStencil(0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -130,7 +132,6 @@ void RenderScene(void) {
 
             glBegin(GL_TRIANGLES);
             for (size_t j=0;j<3;++j) {
-                //textex corrd. object->tList[object->faceList[i][j].t].ptr
                 glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
                 glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
             }
@@ -141,8 +142,9 @@ void RenderScene(void) {
 
     Light(true);
     // fill the z-buffer, or whatever
-    glDepthMask(GL_TRUE);
-    glColorMask(1, 1, 1, 1);
+    glDepthMask(GL_FALSE);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
     glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
@@ -168,47 +170,34 @@ void RenderScene(void) {
             find_vec(object->vList[object->faceList[i][2].v].ptr, 0.4);
             float endpoint2[] = {ans[0], ans[1], ans[2]};
 
-            //glBegin(GL_TRIANGLES);
-            //for (size_t j=0;j<3;++j) {
-            //    //textex corrd. object->tList[object->faceList[i][j].t].ptr
-            //    glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
-            //    glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
-            //}
-            //glEnd();
             glBegin(GL_QUADS);
-                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glVertex3fv(endpoint0);
+                glVertex3fv(endpoint1);
                 glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-                glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
-                glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
-                glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
-                glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
                 glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
-                glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
-                glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
             glEnd();
-            //glBegin(GL_TRIANGLES);
-            //    glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
-            //    glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
-            //    glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
-            //glEnd();
+            glBegin(GL_QUADS);
+                glVertex3fv(endpoint1);
+                glVertex3fv(endpoint2);
+                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+            glEnd();
+            glBegin(GL_QUADS);
+                glVertex3fv(endpoint2);
+                glVertex3fv(endpoint0);
+                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+            glEnd();
         }
         glPopMatrix();
     }
     
     // fill the z-buffer, or whatever
-    glDepthMask(GL_TRUE);
-    glColorMask(1, 1, 1, 1);
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
 
     glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-    glStencilFunc(GL_ALWAYS, 1, 0xff);
+    glStencilFunc(GL_ALWAYS, 1, 1);
     for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
         mesh* object = scene_obj->object[k].mesh_object;
         model model_tmp = scene_obj->object[k];
@@ -230,49 +219,62 @@ void RenderScene(void) {
             find_vec(object->vList[object->faceList[i][2].v].ptr, 0.4);
             float endpoint2[] = {ans[0], ans[1], ans[2]};
 
-            //glBegin(GL_TRIANGLES);
-            //for (size_t j=0;j<3;++j) {
-            //    //textex corrd. object->tList[object->faceList[i][j].t].ptr
-            //    glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
-            //    glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
-            //}
-            //glEnd();
             glBegin(GL_QUADS);
-                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glVertex3fv(endpoint0);
+                glVertex3fv(endpoint1);
                 glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-                glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
-                glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
-                glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
-                glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
-            glEnd();
-            glBegin(GL_QUADS);
-                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
                 glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
-                glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
-                glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
             glEnd();
-            //glBegin(GL_TRIANGLES);
-            //    glVertex3f(endpoint0[0], endpoint0[1], endpoint0[2]);
-            //    glVertex3f(endpoint1[0], endpoint1[1], endpoint1[2]);
-            //    glVertex3f(endpoint2[0], endpoint2[1], endpoint2[2]);
-            //glEnd();
+            glBegin(GL_QUADS);
+                glVertex3fv(endpoint1);
+                glVertex3fv(endpoint2);
+                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+                glVertex3fv(object->vList[object->faceList[i][1].v].ptr);	
+            glEnd();
+            glBegin(GL_QUADS);
+                glVertex3fv(endpoint2);
+                glVertex3fv(endpoint0);
+                glVertex3fv(object->vList[object->faceList[i][0].v].ptr);	
+                glVertex3fv(object->vList[object->faceList[i][2].v].ptr);	
+            glEnd();
         }
         glPopMatrix();
     }
 
     glClear(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glStencilFunc(GL_EQUAL, 0, 0xff);
-    glStencilOp(GL_INVERT, GL_INVERT, GL_KEEP);
 
-    
-    //glStencilFunc(GL_ALWAYS, 1, 1);
-    //glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-    //glColor3f(1.0, 1.0, 1.0);
-    
+    lastMaterial = -1;
+    for (int k = 0, l = scene_obj->object.size(); k < l; ++k) {
+        mesh* object = scene_obj->object[k].mesh_object;
+        model model_tmp = scene_obj->object[k];
+        glPushMatrix();
+        glTranslatef(model_tmp.Tx, model_tmp.Ty, model_tmp.Tz);
+        glRotatef(model_tmp.Angle, model_tmp.Rx, model_tmp.Ry, model_tmp.Rz);
+        glScalef(model_tmp.Sx, model_tmp.Sy, model_tmp.Sz);
+
+        for(size_t i=0;i < object->fTotal;++i) {
+            // set material property if this face used different material
+            if(lastMaterial != object->faceList[i].m) {
+                lastMaterial = (int)object->faceList[i].m;
+                glMaterialfv(GL_FRONT, GL_AMBIENT  , object->mList[lastMaterial].Ka);
+                glMaterialfv(GL_FRONT, GL_DIFFUSE  , object->mList[lastMaterial].Kd);
+                glMaterialfv(GL_FRONT, GL_SPECULAR , object->mList[lastMaterial].Ks);
+                glMaterialfv(GL_FRONT, GL_SHININESS, &object->mList[lastMaterial].Ns);
+            }
+
+            glBegin(GL_TRIANGLES);
+            for (size_t j=0;j<3;++j) {
+                glNormal3fv(object->nList[object->faceList[i][j].n].ptr);
+                glVertex3fv(object->vList[object->faceList[i][j].v].ptr);	
+            }
+            glEnd();
+        }
+        glPopMatrix();
+    }
     glutSwapBuffers();
     //glutPostRedisplay();
 }
