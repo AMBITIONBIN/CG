@@ -58,7 +58,7 @@ void Light(bool special=false) {
         GLfloat light_position[] = {light_tmp.x, light_tmp.y, light_tmp.z, 1.0f};
         GLfloat light_specular[] = {0, 0, 0, 0};
         GLfloat light_diffuse[] = {0, 0, 0, 0};
-        GLfloat light_ambient[] = {light_tmp.ar, light_tmp.ag, light_tmp.sb, 1.0f};
+        GLfloat light_ambient[] = {light_tmp.ar, light_tmp.ag, light_tmp.ab, 1.0f};
 
         if (special) {
             light_specular[0] = light_tmp.sr; 
@@ -367,6 +367,18 @@ void ProcessNormalKeys(unsigned char key, int x, int y) {
             break;
         case 's':
             (*scene_obj).Backward(vec_x*fraction, vec_z*fraction);
+            break;
+        case 'k':
+            (*scene_obj).LightTop();
+            break;
+        case 'j':
+            (*scene_obj).LightDown();
+            break;
+        case 'h':
+            (*scene_obj).LightLeft();
+            break;
+        case 'l':
+            (*scene_obj).LightRight();
             break;
     }
 }

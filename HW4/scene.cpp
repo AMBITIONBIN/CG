@@ -240,6 +240,42 @@ void scene::Init() {
     LoadLight();
 }
 
+void scene::LightTop() {
+    this->lights[0].x += vup[0];
+    this->lights[0].y += vup[1];
+    this->lights[0].z += vup[2];
+}
+
+void scene::LightDown() {
+    this->lights[0].x -= vup[0];
+    this->lights[0].y -= vup[1];
+    this->lights[0].z -= vup[2];
+}
+
+void scene::LightLeft() {
+    float fraction = GetFraction()*5;
+    float dis[] = {this->eye[0] - this->vat[0], 
+                   this->eye[1] - this->vat[1],
+                   this->eye[2] - this->vat[2]};
+    float normal[] = {dis[1]*this->vup[2] - dis[2]*this->vup[1],
+                      dis[2]*this->vup[0] - dis[0]*this->vup[2],
+                      dis[0]*this->vup[1] - dis[1]*this->vup[0]};
+    this->lights[0].x += normal[0]*fraction;
+    this->lights[0].y += normal[1]*fraction;
+    this->lights[0].z += normal[2]*fraction;
+}
+void scene::LightRight() {
+    float fraction = GetFraction()*5;
+    float dis[] = {this->eye[0] - this->vat[0], 
+                   this->eye[1] - this->vat[1],
+                   this->eye[2] - this->vat[2]};
+    float normal[] = {dis[1]*this->vup[2] - dis[2]*this->vup[1],
+                      dis[2]*this->vup[0] - dis[0]*this->vup[2],
+                      dis[0]*this->vup[1] - dis[1]*this->vup[0]};
+    this->lights[0].x -= normal[0]*fraction;
+    this->lights[0].y -= normal[1]*fraction;
+    this->lights[0].z -= normal[2]*fraction;
+}
 model::model(const char* path, const char* obj_file) {
     this->mesh_object = new mesh(path, obj_file);
 }

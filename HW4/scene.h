@@ -39,6 +39,10 @@ public:
     void TurnRight(float, float, float);
     void TurnUp(float, float, float, float);
     void TurnDown(float, float, float, float);
+    void LightTop();
+    void LightDown();
+    void LightLeft();
+    void LightRight();
     float GetFraction();
 private:
     void LoadView();
