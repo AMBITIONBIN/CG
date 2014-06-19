@@ -17,7 +17,7 @@ GLfloat spot_light[3];
 
 float ans[3];
 
-void find_vec(float point[3], double size = 1) {
+void find_vec(float point[3], double size = 10) {
     ans[0] = point[0] + (point[0] - spot_light[0])*size;
     ans[1] = point[1] + (point[1] - spot_light[1])*size;
     ans[2] = point[2] + (point[2] - spot_light[2])*size;
@@ -178,11 +178,11 @@ void RenderScene(void) {
             bool is_front = front_face(x, y, z);
             
             // find points use to draw shadow polygon
-            find_vec(x, 0.4);
+            find_vec(x);
             float endpointx[] = {ans[0], ans[1], ans[2]};
-            find_vec(y, 0.4);
+            find_vec(y);
             float endpointy[] = {ans[0], ans[1], ans[2]};
-            find_vec(z, 0.4);
+            find_vec(z);
             float endpointz[] = {ans[0], ans[1], ans[2]};
 
             if (is_front) {
@@ -252,11 +252,11 @@ void RenderScene(void) {
             bool is_front = front_face(x, y, z);
             
             // find points use to draw shadow polygon
-            find_vec(x, 0.4);
+            find_vec(x);
             float endpointx[] = {ans[0], ans[1], ans[2]};
-            find_vec(y, 0.4);
+            find_vec(y);
             float endpointy[] = {ans[0], ans[1], ans[2]};
-            find_vec(z, 0.4);
+            find_vec(z);
             float endpointz[] = {ans[0], ans[1], ans[2]};
 
             if (is_front) {
